@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="author" content="Аденов Бекасыл">
+<title>Архитектура ИС: живая лекция</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a research lab on a blueprint sheet. One scene at a time: hypothesis → experiment → own conclusion → concept unlocks into the journal */
+:root{
+  --bg:#0B1424; --panel:#111E35; --panel2:#16274A; --line:#26395F; --grid:rgba(120,160,230,.07);
+  --fg:#E7EDF7; --soft:#C9D5EA; --muted:#93A4C3; --accent:#FFB020; --accent-ink:#1A1205;
+  --ok:#3FD0A4; --bad:#FF5D6C; --blue:#5AA9FF; --violet:#A98BFF;
+  --f-display:"Unbounded","Onest",system-ui,sans-serif;
+  --f-body:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+  --r:14px; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.5;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px}
+.app{min-height:100%;display:flex;flex-direction:column;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;gap:14px;padding-block:12px;background:linear-gradient(var(--bg) 70%,transparent)}
+.brand{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.rail{flex:1;display:flex;gap:6px;min-width:0}
+.rail button{flex:1;height:6px;border-radius:3px;border:0;background:var(--line);cursor:pointer;padding:0;min-width:5px}
+.rail button.done{background:#3a5488}.rail button.cur{background:var(--accent)}
+.jbtn{display:flex;align-items:center;gap:8px;font:600 13px var(--f-mono);color:var(--fg);background:var(--panel);border:1px solid var(--line);padding:6px 12px;border-radius:99px;white-space:nowrap;cursor:pointer}
+.jbtn svg{width:16px;height:16px;fill:var(--accent)}
+main{flex:1;width:100%;max-width:1200px;margin:0 auto;padding-block:8px 24px}
+.scene{display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+h1,h2{font-family:var(--f-display);font-weight:700;line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(30px,5vw,58px)} h2{font-size:clamp(22px,3vw,36px)}
+h3{font-size:18px;margin:0 0 6px;font-weight:600}
+p{margin:0;max-width:70ch}
+.lead{font-size:clamp(17px,1.6vw,20px);color:var(--soft)}
+.muted{color:var(--muted)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:20px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px;min-width:0}
+.tag{display:inline-flex;align-items:center;gap:6px;font:600 12px var(--f-mono);background:var(--accent);color:var(--accent-ink);padding:5px 12px;border-radius:99px;letter-spacing:.04em;text-transform:uppercase}
+.tag.blue{background:var(--blue);color:#06142A}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.btn{font:600 15px var(--f-body);color:var(--fg);background:var(--panel2);border:1px solid var(--line);padding:10px 16px;border-radius:10px;cursor:pointer;transition:background .15s,border-color .15s}
+.btn:hover{border-color:#4a679f}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.on{background:#3a2a07;border-color:var(--accent);color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.link{background:none;border:0;color:var(--muted);font:13px var(--f-body);text-decoration:underline;cursor:pointer;padding:0}
+:is(.btn,.rail button,.jbtn,.seg button,.flip,.link,.opt,summary):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+footer.nav{position:sticky;bottom:0;display:flex;justify-content:space-between;align-items:center;gap:12px;padding-block:12px calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--bg) 35%)}
+.nav .where{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:center;flex:1}
+kbd{font-family:var(--f-mono);font-size:11px;border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--muted)}
+details.teach{border:1px dashed var(--line);border-radius:10px;padding:10px 14px;color:var(--muted);font-size:14px}
+details.teach summary{cursor:pointer;font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+details.teach ul{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+select,textarea,input[type=text],input[type=number]{width:100%;font:15px var(--f-body);color:var(--fg);background:#0A1222;border:1px solid var(--line);border-radius:8px;padding:9px 10px}
+textarea{min-height:76px;resize:vertical}
+
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:28px;align-items:center;padding-top:20px}
+@media (max-width:820px){.hero{grid-template-columns:1fr}}
+#heroNet{width:100%;height:auto}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:14px}
+.step b{display:block;font:700 13px var(--f-mono);color:var(--accent);margin-bottom:4px}
+
+.opt{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.letter{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:700 18px var(--f-display);background:var(--panel2);color:var(--accent)}
+.bar{height:10px;background:var(--panel2);border-radius:5px;overflow:hidden;margin-top:8px;position:relative}
+.bar>i{display:block;height:100%;width:0;background:var(--accent);border-radius:5px}
+.cnt{font:600 22px var(--f-mono);min-width:3ch;text-align:right;font-variant-numeric:tabular-nums}
+.minus{font:600 13px var(--f-mono);background:none;border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer;margin-left:8px}
+
+.labgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:900px){.labgrid{grid-template-columns:1fr}}
+.archcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px;min-width:0;display:flex;flex-direction:column;gap:8px}
+.archcard h3{display:flex;align-items:baseline;gap:8px;margin:0}
+.archcard h3 .nm{font:700 22px var(--f-display);color:var(--accent)}
+.archcard h3 .real{font-size:14px;color:var(--ok);font-weight:600}
+.archcard svg{width:100%;height:auto;display:block}
+.archcard svg text{font-family:var(--f-body);font-size:12px;font-weight:600;fill:var(--fg);pointer-events:none}
+.archcard svg .small{font-size:10px;font-family:var(--f-mono);font-weight:400;fill:var(--muted)}
+.outcome{font-size:14px;color:var(--soft);min-height:42px}
+.outcome b{color:var(--fg)}
+
+.pred{display:grid;grid-template-columns:40px minmax(0,1fr) 28px;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.pred:last-child{border-bottom:0}
+.pred .nm{font:700 20px var(--f-display);color:var(--accent);text-align:center}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{font:500 14px var(--f-body);color:var(--soft);background:#0A1222;border:1px solid var(--line);border-radius:8px;padding:7px 10px;cursor:pointer;text-align:left}
+.seg button.sel{border-color:var(--accent);color:var(--accent);background:#2a1f08}
+.seg button.truth{border-color:var(--ok);color:var(--ok)}
+.seg.locked button{cursor:default}
+.mk{font:700 18px var(--f-mono);text-align:center}
+.mk.y{color:var(--ok)}.mk.n{color:var(--bad)}
+
+.conclude{display:flex;flex-direction:column;gap:10px}
+.concept{border:1px solid var(--ok);background:linear-gradient(135deg,rgba(63,208,164,.10),rgba(63,208,164,.02));border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:10px}
+.concept .eyebrow{color:var(--ok)}
+.concept h3{font:700 22px var(--f-display);margin:0}
+.yours{font-size:14px;color:var(--muted);padding:10px 12px;background:rgba(0,0,0,.2);border-radius:8px}
+.yours b{color:var(--soft)}
+
+.gantt{display:flex;flex-direction:column;gap:18px}
+.grow{display:grid;grid-template-columns:40px minmax(0,1fr) 7ch;gap:12px;align-items:start}
+.grow .nm{font:700 20px var(--f-display);color:var(--accent);text-align:center}
+.track{position:relative;height:30px;background:#0A1222;border:1px solid var(--line);border-radius:8px}
+.track>i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--blue);border-radius:7px}
+.track .dl{position:absolute;left:50%;top:-6px;bottom:-6px;width:2px;background:var(--bad)}
+.mon{font:600 15px var(--f-mono);text-align:right;font-variant-numeric:tabular-nums;padding-top:4px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:99px;padding:3px 9px;color:var(--soft)}
+.months{display:grid;grid-template-columns:40px minmax(0,1fr) 7ch;gap:12px;font:11px var(--f-mono);color:var(--muted)}
+.months div{display:flex;justify-content:space-between}
+.months .ddl{color:var(--bad)}
+
+.teamsvg{width:100%;height:auto}
+.kpi{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.kpi b{display:block;font:700 22px var(--f-mono);color:var(--fg)}
+
+.tablewrap{overflow-x:auto}
+table.obs{border-collapse:separate;border-spacing:0;width:100%;min-width:640px;font-size:15px}
+.obs th,.obs td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.obs th{font:600 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.obs td:first-child{color:var(--muted);width:22%}
+.obs .ok{color:var(--ok)}.obs .no{color:var(--bad)}
+.namerow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:700px){.namerow{grid-template-columns:1fr}}
+
+.era{display:flex;flex-direction:column;gap:12px}
+.wrow{display:grid;grid-template-columns:minmax(130px,200px) minmax(0,1fr) 5ch;gap:12px;align-items:center}
+.wrow input{width:100%;accent-color:var(--accent)}
+.wrow output{font:14px var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+.race{position:relative;height:150px;margin-top:6px}
+.lane{position:absolute;left:0;right:0;height:46px;display:grid;grid-template-columns:minmax(80px,170px) minmax(0,1fr) 5ch;gap:10px;align-items:center}
+.lane .bar{height:18px;margin:0;border-radius:6px}.lane .bar>i{border-radius:6px;background:#5d6f92}
+.lane .score{font:700 17px var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+.lane.win .bar>i{background:var(--ok)}.lane.win .lnm{color:var(--ok)}
+.scoretbl{font-size:13px;color:var(--muted);width:100%;border-collapse:collapse}
+.scoretbl td,.scoretbl th{padding:4px 6px;text-align:center;border-bottom:1px solid var(--line)}
+.scoretbl td:first-child,.scoretbl th:first-child{text-align:left}
+
+.flipgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+.flip{perspective:900px;background:none;border:0;padding:0;cursor:pointer;text-align:left;font:inherit;color:inherit;min-height:140px}
+.flip .inner{position:relative;width:100%;height:100%;min-height:140px;transform-style:preserve-3d}
+.flip .face{position:absolute;inset:0;border-radius:12px;padding:16px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;gap:8px;border:1px solid var(--line)}
+.flip .front{background:var(--panel2);justify-content:center;align-items:center}
+.flip .front b{font:700 26px var(--f-display);color:var(--accent)}
+.flip .back{background:var(--panel);transform:rotateY(180deg)}
+.req{display:grid;grid-template-columns:minmax(110px,150px) minmax(0,1fr);gap:6px 16px;font-size:15px;margin:0}
+.req dt{font:600 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--blue);padding-top:3px}
+.req dd{margin:0}
+.timer{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.ring{width:110px;height:110px;flex:none}
+.ring circle{fill:none;stroke-width:9}.ring .trk{stroke:var(--line)}.ring .val{stroke:var(--accent);stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%}
+.ring text{font:700 20px var(--f-mono);fill:var(--fg)}
+.phase{font:13px var(--f-mono);color:var(--muted)}.phase b{color:var(--fg)}
+
+.attrsel{display:grid;grid-template-columns:minmax(0,1fr) 70px;gap:8px;margin-bottom:6px}
+#thinkNet{width:100%;max-width:420px;height:auto;display:block;margin:0 auto}
+.gauges{display:flex;gap:18px;flex-wrap:wrap}
+.gauge{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:13px;color:var(--muted);text-align:center;width:110px}
+.gauge svg{width:80px;height:80px}
+.gauge circle{fill:none;stroke-width:8}.gauge .trk{stroke:var(--line)}.gauge .val{stroke:var(--ok);stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%}
+.gauge text{font:700 19px var(--f-mono);fill:var(--fg)}
+.ailist{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.example{font:11px var(--f-mono);color:var(--accent);border:1px dashed var(--accent);border-radius:6px;padding:2px 8px}
+
+.journal{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:12px}
+.jcard{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--panel);display:flex;flex-direction:column;gap:6px}
+.jcard.open{border-color:var(--ok)}
+.jcard .num{font:600 12px var(--f-mono);color:var(--muted)}
+.jcard.open .num{color:var(--ok)}
+.jcard.lock h3{color:var(--muted)}
+dialog{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:16px;padding:20px;width:min(980px,calc(100% - 32px));max-height:85vh}
+dialog::backdrop{background:rgba(3,8,18,.7)}
+.cmpbar{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:center;margin-bottom:12px}
+.cmpbar .bars{display:flex;flex-direction:column;gap:4px}
+.cmpbar .bar{margin:0;height:12px}.cmpbar .bar.b0>i{background:#5d6f92}
+.cmpbar .bar span{position:absolute;right:6px;top:-2px;font:600 11px var(--f-mono);color:var(--fg)}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--muted)}.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.teamgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:12px}
+.team{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.team h3{font:700 16px var(--f-display);color:var(--accent);margin:0 0 4px}
+.member{font-size:14px;background:var(--panel2);border-radius:8px;padding:5px 9px}
+.genregrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
+.genre{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.genre .gname{font:700 18px var(--f-display);color:var(--fg);min-height:48px;display:flex;align-items:center}
+.genre.done{border-color:var(--accent)}
+.kw{font-size:13px;border:1px solid var(--line);border-radius:99px;padding:4px 10px;color:var(--soft)}
+.kw.hit{border-color:var(--ok);color:var(--ok);background:rgba(63,208,164,.08)}
+.kwwrap{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px}
+@media (max-width:820px){.kwwrap{grid-template-columns:1fr}}
+.srcs a{color:var(--blue);font-weight:600}
+.vote{display:flex;flex-direction:column;gap:16px}
+.vote .btn:disabled{opacity:.25}
+.vrow{display:grid;grid-template-columns:minmax(90px,130px) minmax(0,1fr) 4ch;gap:10px;align-items:center;margin-bottom:10px}
+.vrow .bar{height:18px;margin:0}
+.vrow b{font:700 18px var(--f-mono);text-align:right}
+.winner{border:1px solid var(--accent);border-radius:var(--r);padding:20px;background:linear-gradient(135deg,rgba(255,176,32,.14),rgba(255,176,32,.02));display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
+.winner .big{font:700 clamp(28px,4vw,44px) var(--f-display);color:var(--accent)}
+.scores{display:flex;gap:10px;flex-wrap:wrap}
+.score{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:14px}
+.score b{font:700 20px var(--f-mono);display:block}
+.quota{font:600 13px var(--f-mono);color:var(--accent);background:#2a1f08;border:1px solid var(--accent);border-radius:99px;padding:4px 10px}
+.quota.out{color:var(--bad);border-color:var(--bad);background:rgba(255,93,108,.1)}
+.ailog{display:flex;flex-direction:column;gap:10px}
+.qa{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.qa .q{color:var(--soft)}.qa .q b{color:var(--blue)}
+.qa.viol{border-color:var(--bad)}.qa.viol .q b{color:var(--bad)}
+.aiuse{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.ws-line{font-size:16px;border-bottom:1px solid var(--line);padding-bottom:10px}
+table.ws td{height:46px}
+.ws-checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px 14px;font-size:14px}
+.ws-checks span::before{content:"☐ ";color:var(--accent)}
+body.print header.top,body.print footer.nav,body.print .rail{display:none!important}
+body.print .scene{padding-block:28px}
+@media (max-width:700px){.brand{display:none}.nav .where{font-size:11px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="app">
+<header class="top">
+  <span class="brand">Проектирование ИС · Аденов Б.</span>
+  <nav class="rail" id="rail" aria-label="Этапы"></nav>
+  <button class="jbtn" id="jOpen" type="button" title="Журнал открытий"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21h6v-1H9v1zm3-19a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2z"/></svg>Открытия <span id="jN">0</span>/6</button>
+</header>
+
+<main id="main">
+
+<section class="scene" data-name="Старт">
+  <div class="hero">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <span class="eyebrow anim">Лекция-исследование · 80 минут</span>
+      <h1 class="anim">Какую архитектуру выбрать?</h1>
+      <p class="anim" style="font-size:16px;color:var(--soft)">Автор: <b style="color:var(--fg)">Аденов Бекасыл</b> · магистрант гр. ИС-26 МН · Алматинский технологический университет</p>
+      <div class="row anim"><button class="btn primary" data-go="1" type="button">Начать исследование</button><span class="muted" style="font-size:14px"><kbd>←</kbd> <kbd>→</kbd> переход между этапами</span></div>
+      <p class="muted anim" style="font-size:14px">Можно вести всей аудиторией на проекторе или раздать файл студентам: пары проходят лабораторию на своих ноутбуках. <button class="link" id="resetAll" type="button">Новая группа — стереть все ответы</button></p>
+    </div>
+    <svg id="heroNet" viewBox="0 0 520 420" aria-hidden="true"></svg>
+  </div>
+</section>
+
+<section class="scene" data-name="Ваша гипотеза" hidden>
+  <div class="row"><span class="tag anim">Мотивация · гипотеза · 5 мин</span></div>
+  <h2 class="anim">Стартап делает доставку еды: 4 разработчика, первая версия через 3 месяца. Как бы вы устроили систему?</h2>
+  <p class="muted anim">Голосуйте интуитивно — терминов пока не нужно. Нажмите на вариант, чтобы добавить голос. В конце лекции проголосуем снова.</p>
+  <div class="grid2 anim" id="poll0"></div>
+  <div class="panel anim"><label for="h0why">Почему большинство выбрало именно так? Запишите главный довод аудитории — к нему вернёмся в конце.</label><textarea id="h0why" placeholder="Например: «так делают все крупные компании»"></textarea></div>
+  <details class="teach anim"><summary>Преподавателю</summary><ul><li>Не говорите, кто прав. Спросите: «Что вы знаете о стартапе такого, что повлияло на ваш выбор?»</li><li>Если звучит «так делают Netflix и Google», запишите эту фразу — к ней вернётся этап «Как выбирать».</li></ul></details>
+</section>
+
+<section class="scene" data-name="Знакомство с A, B, C" hidden>
+  <span class="eyebrow anim">Мотивация · наблюдение</span>
+  <h2 class="anim">Три системы делают одно и то же: принимают заказы, оплату и доставку. Чем они отличаются?</h2>
+  <div class="labgrid anim" data-lab="free"></div>
+  <div class="row anim"><button class="btn primary" id="freeTraffic" type="button">Пустить запросы во все три</button><span class="muted" style="font-size:14px">Зелёная точка — запрос клиента. Проследите её путь.</span></div>
+  <div class="panel anim conclude">
+    <label for="obs0">Опишите своими словами, чем A, B и C устроены по-разному. Хотя бы два отличия.</label>
+    <textarea id="obs0" data-save="obs0" placeholder="В A всё внутри одной рамки, а в C…"></textarea>
+  </div>
+  <details class="teach anim"><summary>Преподавателю</summary><ul><li>Сколько отдельных «коробок» проходит запрос в каждой системе?</li><li>Где хранятся данные: в одном месте или в нескольких?</li><li>Что объединяет пунктирная рамка в A?</li></ul></details>
+</section>
+
+<section class="scene" data-name="Команды" hidden>
+  <div class="row"><span class="tag anim">Организация · 3 мин</span></div>
+  <h2 class="anim">Новые команды — каждый раз новый состав</h2>
+  <p class="muted anim">Вставьте список студентов (по одному в строке) или просто укажите их число. Состав перемешивается случайно — работать придётся с теми, с кем ещё не работали.</p>
+  <div class="grid2">
+    <div class="panel anim" style="display:flex;flex-direction:column;gap:12px">
+      <div><label for="tNames">Студенты (необязательно)</label><textarea id="tNames" placeholder="Айгерим&#10;Данияр&#10;…"></textarea></div>
+      <div class="row"><div style="flex:1;min-width:120px"><label for="tCount">Сколько студентов</label><input type="number" id="tCount" min="2" max="60" value="25"></div><div style="flex:1;min-width:120px"><label for="tTeams">Сколько команд</label><input type="number" id="tTeams" min="2" max="8" value="5"></div></div>
+      <div class="row"><button class="btn primary" id="tMake" type="button">Сформировать команды</button></div>
+    </div>
+    <div class="panel anim"><h3>Роли в каждой команде</h3><ul class="clean" style="font-size:15px"><li><span class="dot" style="background:var(--blue)"></span><span><b>Исследователь</b> — ищет в источниках и в лаборатории</span></li><li><span class="dot" style="background:var(--violet)"></span><span><b>Автор</b> — собирает текст или сценарий</span></li><li><span class="dot" style="background:var(--ok)"></span><span><b>Художник</b> — рисунок, схема, раскадровка</span></li><li><span class="dot" style="background:var(--accent)"></span><span><b>Хранитель терминов</b> — следит, чтобы прозвучали все ключевые слова</span></li><li><span class="dot" style="background:var(--bad)"></span><span><b>Спикер</b> — защищает работу</span></li></ul></div>
+  </div>
+  <div class="teamgrid anim" id="teamGrid"></div>
+</section>
+
+<section class="scene" data-name="Миссия и жанр" hidden>
+  <div class="row"><span class="tag anim">Задание</span></div>
+  <h2 class="anim">Создайте свой продукт: история в заданном жанре, где прозвучат все ключевые понятия темы</h2>
+  <div class="grid2">
+    <div class="panel anim"><h3>Ключевые слова — должны прозвучать все</h3><div class="chips" id="kwList"></div>
+      <h3 style="margin-top:16px">Ключевые положения — должны быть понятны из вашей истории</h3><ol id="thesesList" style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:15px"></ol></div>
+    <div class="panel anim" style="display:flex;flex-direction:column;gap:12px"><h3>Правила</h3>
+      <ul class="clean" style="font-size:15px">
+        <li><span class="dot" style="background:var(--ok)"></span><span>Сначала <b>обсуждаем всей командой</b>, потом создаём.</span></li>
+        <li><span class="dot" style="background:var(--ok)"></span><span>Источники — только интернет: сайты из подборки и лаборатория A, B, C.</span></li>
+        <li><span class="dot" style="background:var(--ok)"></span><span>ИИ — только через ИИ-консультанта: 3 вопроса на команду и 1 проверка фактов. Все вопросы видны преподавателю.</span></li>
+        <li><span class="dot" style="background:var(--bad)"></span><span>Нельзя просить ИИ написать рассказ, стих или сценарий — консультант блокирует такие запросы и записывает нарушение. Явно сгенерированный текст — минус баллы.</span></li>
+        <li><span class="dot" style="background:var(--ok)"></span><span>Продукт — ваше творчество: текст, рисунок, комикс, видео или анимация.</span></li>
+      </ul></div>
+  </div>
+  <h3 class="anim">Жанр — по жребию</h3>
+  <div class="genregrid anim" id="genreGrid"></div>
+</section>
+
+<section class="scene" data-name="Источники" hidden>
+  <span class="eyebrow anim">Исследование · найдите сами</span>
+  <h2 class="anim">Чтобы написать историю, команде нужно сначала ответить на 4 вопроса</h2>
+  <div class="grid2">
+    <div class="panel anim"><h3>Вопросы исследования</h3><ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px">
+      <li>Почему в одной системе сбой одного модуля роняет всё, а в другой — нет? <span class="muted">(лаборатория: эксперимент 1)</span></li>
+      <li>Как система выдерживает рост нагрузки и что становится узким местом? <span class="muted">(эксперимент 2)</span></li>
+      <li>Почему «современная» архитектура может сорвать срок маленькой команде? <span class="muted">(эксперимент 3)</span></li>
+      <li>Как устройство команд связано с устройством системы? <span class="muted">(эксперимент 4)</span></li>
+    </ol><p class="muted" style="margin-top:12px;font-size:14px">Лаборатория — следующие слайды. Пары могут открыть этот файл на своих ноутбуках и проходить эксперименты сами.</p></div>
+    <div class="panel anim"><h3>Где искать</h3><ul class="clean srcs">
+      <li><span class="dot" style="background:var(--blue)"></span><span><a href="https://learn.microsoft.com/ru-ru/azure/architecture/guide/architecture-styles/" target="_blank" rel="noopener">Стили архитектуры — Microsoft Learn</a><br><span class="muted">N-уровневая архитектура, микрослужбы и другие стили, по-русски</span></span></li>
+      <li><span class="dot" style="background:var(--blue)"></span><span><a href="https://learn.microsoft.com/ru-ru/azure/architecture/guide/architecture-styles/n-tier" target="_blank" rel="noopener">N-уровневый архитектурный стиль — Microsoft Learn</a><br><span class="muted">Уровни представления, логики и данных</span></span></li>
+      <li><span class="dot" style="background:var(--blue)"></span><span><a href="https://aws.amazon.com/ru/compare/the-difference-between-monolithic-and-microservices-architecture/" target="_blank" rel="noopener">Монолитная и микросервисная архитектура — AWS</a><br><span class="muted">Сравнение по-русски</span></span></li>
+      <li><span class="dot" style="background:var(--blue)"></span><span><a href="https://ru.wikipedia.org/wiki/%D0%97%D0%B0%D0%BA%D0%BE%D0%BD_%D0%9A%D0%BE%D0%BD%D0%B2%D0%B5%D1%8F" target="_blank" rel="noopener">Закон Конвея — Википедия</a></span></li>
+      <li><span class="dot" style="background:var(--blue)"></span><span><a href="https://martinfowler.com/bliki/MonolithFirst.html" target="_blank" rel="noopener">Monolith First — Мартин Фаулер</a><br><span class="muted">Почему стоит начинать с монолита (англ.)</span></span></li>
+      <li><span class="dot" style="background:var(--blue)"></span><span><a href="https://adr.github.io/" target="_blank" rel="noopener">Architectural Decision Records</a><br><span class="muted">Как записывают архитектурные решения (англ.)</span></span></li>
+    </ul></div>
+  </div>
+</section>
+
+<section class="scene" data-name="ИИ-консультант" hidden>
+  <div class="row" style="justify-content:space-between"><span class="eyebrow anim">Исследование · помощь по правилам</span><span class="tag blue anim">ИИ с ограничениями</span></div>
+  <h2 class="anim">ИИ-консультант: объясняет, но не пишет за вас</h2>
+  <div class="grid2">
+    <div class="panel anim"><h3>Правила</h3><ul class="clean" style="font-size:15px">
+      <li><span class="dot" style="background:var(--ok)"></span><span><b>Можно:</b> спросить, что значит термин, попросить пример из жизни, проверить, правильно ли вы поняли.</span></li>
+      <li><span class="dot" style="background:var(--bad)"></span><span><b>Нельзя:</b> просить написать рассказ, стих, сценарий или любой текст для вашей работы. Такой запрос блокируется и записывается как нарушение.</span></li>
+      <li><span class="dot" style="background:var(--accent)"></span><span><b>Лимит:</b> 3 вопроса на команду и 1 проверка фактов в мастерской.</span></li>
+      <li><span class="dot" style="background:var(--blue)"></span><span><b>Прозрачность:</b> все вопросы и нарушения видны преподавателю и показываются на защите.</span></li>
+    </ul></div>
+    <div class="panel anim" style="display:flex;flex-direction:column;gap:12px">
+      <div class="row" style="justify-content:space-between"><div class="tabs" id="aiTeams"></div><span class="quota" id="aiQuota"></span></div>
+      <div><label for="aiQ">Вопрос команды (до 300 символов)</label><textarea id="aiQ" maxlength="300" placeholder="Например: что такое балансировщик нагрузки простыми словами?"></textarea></div>
+      <div class="row"><button class="btn primary" id="aiAsk" type="button">Спросить</button><button class="btn" id="aiStop" type="button" hidden>Остановить</button><span class="muted" id="aiState" style="font-size:14px"></span></div>
+      <svg id="thinkNet" viewBox="0 0 420 120" aria-hidden="true"></svg>
+    </div>
+  </div>
+  <div class="panel anim"><h3>Журнал вопросов команды</h3><div id="aiLog" class="ailog"></div></div>
+</section>
+
+<section class="scene" data-name="Эксперимент 1: сбой" data-exp="fail" hidden></section>
+<section class="scene" data-name="Эксперимент 2: нагрузка" data-exp="load" hidden></section>
+<section class="scene" data-name="Эксперимент 3: сроки" data-exp="time" hidden></section>
+<section class="scene" data-name="Эксперимент 4: команды" data-exp="teams" hidden></section>
+
+<section class="scene" data-name="Сводка и названия" hidden>
+  <span class="eyebrow anim">Сведение результатов</span>
+  <h2 class="anim">Ваши наблюдения. Теперь дайте системам имена</h2>
+  <div class="panel anim tablewrap"><table class="obs" id="obsTable"></table></div>
+  <p class="muted anim" id="accText"></p>
+  <div class="panel anim" style="display:flex;flex-direction:column;gap:14px">
+    <p>В индустрии у этих трёх подходов есть устоявшиеся названия. По тому, что вы увидели, сопоставьте их сами.</p>
+    <div class="namerow" id="nameRow"></div>
+    <div class="row"><button class="btn primary" id="nameCheck" type="button">Проверить</button><span id="nameRes" class="muted"></span></div>
+  </div>
+  <div class="anim" data-concept="D5"></div>
+</section>
+
+<section class="scene" data-name="Как выбирать" hidden>
+  <span class="eyebrow anim">Метод выбора</span>
+  <h2 class="anim">Расставьте веса критериев сами — для двух моментов жизни компании</h2>
+  <p class="muted anim">Оценки 1–5 взяты из ваших экспериментов. Сейчас веса равные — это нечестно. Решите, что важнее в каждой ситуации.</p>
+  <div class="grid2">
+    <div class="panel anim era" data-era="0"></div>
+    <div class="panel anim era" data-era="1"></div>
+  </div>
+  <details class="panel anim"><summary class="muted" style="cursor:pointer">Откуда оценки (из экспериментов)</summary><table class="scoretbl" id="scoreTbl" style="margin-top:10px"></table></details>
+  <div class="panel anim conclude">
+    <label for="mxWhy">Сравните победителей слева и справа. Какой вывод о «лучшей архитектуре» из этого следует?</label>
+    <textarea id="mxWhy" data-save="mxWhy"></textarea>
+    <div class="row"><button class="btn primary" data-unlock="D6" data-src="mxWhy" type="button" disabled>Открыть понятие</button><button class="link" data-unlock="D6" data-force type="button">Преподавателю: открыть без вывода</button></div>
+  </div>
+  <div data-concept="D6"></div>
+</section>
+
+<section class="scene" data-name="Творческая мастерская" hidden>
+  <div class="row"><span class="tag anim">Мастерская · 25 мин</span></div>
+  <h2 class="anim">Обсуждаем → создаём → проверяем термины</h2>
+  <div class="grid2">
+    <div class="panel anim"><div class="timer" id="workTimer"></div></div>
+    <div class="panel anim"><h3>Продукт команды</h3><p class="muted" style="font-size:15px">Текст рассказа, сценарий видео или подписи к комиксу. Рисунок и раскадровку делайте на бумаге или в любом редакторе — их покажете на защите.</p></div>
+  </div>
+  <div class="panel anim" style="display:flex;flex-direction:column;gap:12px">
+    <div class="row" style="justify-content:space-between"><h3 style="margin:0">Проверка ключевых слов</h3><div class="tabs" id="kwTeams"></div></div>
+    <div class="kwwrap">
+      <div style="min-width:0"><label for="kwText">Вставьте текст команды — проверка без ИИ, просто поиск терминов</label><textarea id="kwText" style="min-height:220px"></textarea></div>
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0"><div class="row"><svg class="ring" id="kwRing" viewBox="0 0 120 120"><circle class="trk" cx="60" cy="60" r="50"/><circle class="val" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16"/><text x="60" y="67" text-anchor="middle">0/12</text></svg><p class="muted" id="kwNote" style="font-size:14px">Терминов найдено</p></div><div class="chips" id="kwFound"></div><div class="row"><button class="btn" id="kwAi" type="button">Проверка фактов ИИ (1 раз)</button></div><div id="kwAiNote" class="muted" style="font-size:14px"></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="scene" data-name="Защита" hidden>
+  <div class="row"><span class="tag anim">Защита · 3 мин на команду</span></div>
+  <h2 class="anim">Команды показывают свои истории</h2>
+  <p class="muted anim">Пока одна команда выступает, остальные отмечают у себя: прозвучали ли все ключевые положения и что было самым творческим.</p>
+  <div class="tabs anim" id="defTeams"></div>
+  <div class="grid2">
+    <div class="panel anim" id="defInfo"></div>
+    <div class="panel anim"><div class="timer" id="defTimer"></div></div>
+  </div>
+</section>
+
+<section class="scene" data-name="Рефлексия: голосование" hidden>
+  <div class="row"><span class="tag anim">Рефлексия · 7 мин</span></div>
+  <h2 class="anim">Голосуем за лучшую работу — только за чужую команду</h2>
+  <div class="grid2">
+    <div class="panel anim vote">
+      <div><span class="eyebrow">Шаг 1</span><h3>Я из команды…</h3><div class="tabs" id="vFrom"></div></div>
+      <div><span class="eyebrow">Шаг 2</span><h3>Мой голос получает…</h3><div class="tabs" id="vTo"></div></div>
+      <p class="muted" id="vMsg" style="font-size:14px">Каждый студент голосует один раз. Свою команду выбрать нельзя.</p>
+      <div class="row"><button class="btn" id="vUndo" type="button">Отменить последний голос</button><button class="link" id="vReset" type="button">Обнулить голоса</button></div>
+    </div>
+    <div class="panel anim"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Голоса</h3><span class="muted" id="vTotal" style="font-size:14px"></span></div><div id="vBars" style="margin-top:12px"></div>
+      <div class="row" style="margin-top:12px"><button class="btn primary" id="vWin" type="button">Объявить победителя</button></div></div>
+  </div>
+  <div id="vResult"></div>
+  <div class="panel anim"><h3>Самооценка — на листочке, 2 минуты</h3><ol style="margin:0;padding-left:20px"><li>Мой вклад в работу команды: от 1 до 5. Что именно я сделал?</li><li>Какое понятие я теперь могу объяснить другому?</li><li>Что бы я сделал иначе в следующий раз?</li></ol></div>
+</section>
+
+<section class="scene" data-name="Итоги" hidden>
+  <div class="row"><span class="tag anim">Повторное голосование · 4 мин</span></div>
+  <h2 class="anim">Тот же стартап: 4 разработчика, 3 месяца. Ваш выбор теперь?</h2>
+  <div class="grid2">
+    <div class="anim" id="poll1" style="display:flex;flex-direction:column;gap:12px"></div>
+    <div class="panel anim"><div class="row" style="justify-content:space-between;margin-bottom:12px"><h3>До и после исследования</h3><div class="legend"><span><i style="background:#5d6f92"></i>до</span><span><i style="background:var(--accent)"></i>после</span></div></div><div id="pollCmp"></div><p class="muted" id="h0back" style="margin-top:10px;font-size:14px"></p></div>
+  </div>
+  <h3 class="anim" style="margin-top:8px">Что вы открыли сами</h3>
+  <div class="journal anim" id="journalFinal"></div>
+  <div class="grid2 anim">
+    <div class="panel"><h3>Рефлексия на листочке</h3><ol style="margin:0;padding-left:20px"><li>Какое открытие удивило больше всего?</li><li>В каком эксперименте ваш прогноз не сбылся и почему?</li><li>Где вы примените это в своём проекте?</li></ol></div>
+    <div class="panel"><h3 style="color:var(--accent)">Домашнее задание</h3><p>ADR на 1 страницу для архитектуры своего проекта: контекст, 2–3 варианта, матрица оценок с вашими весами, решение, риски.</p></div>
+  </div>
+</section>
+
+<section class="scene" data-name="Рабочий лист команды" data-print-only hidden>
+  <span class="eyebrow">Приложение · распечатать на каждую команду</span>
+  <h2>Рабочий лист команды</h2>
+  <div class="ws-line">Команда № ____ &nbsp;&nbsp; Жанр: ______________________ &nbsp;&nbsp; Состав: ____________________________________________</div>
+  <div class="panel"><h3>Прогнозы до экспериментов</h3><table class="obs ws"><thead><tr><th>Эксперимент</th><th>A</th><th>B</th><th>C</th><th>Сбылось?</th></tr></thead><tbody>
+    <tr><td>1 · Сбой «Оплаты»: что перестанет работать?</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>2 · Нагрузка ×10: что придётся копировать?</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>3 · Успеют 4 человека за 3 месяца?</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>4 · Будут ли 3 команды мешать друг другу?</td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+  <div class="grid2">
+    <div class="panel"><h3>Ключевые слова в нашей истории</h3><div class="ws-checks" id="wsKw"></div></div>
+    <div class="panel"><h3>Ключевые положения</h3><div class="ws-checks" id="wsTh"></div></div>
+  </div>
+  <div class="grid2">
+    <div class="panel"><h3>Использование ИИ</h3><p>Вопросов задано: ___ из 3. О чём спрашивали: ______________________________________</p></div>
+    <div class="panel"><h3>Бюллетень</h3><p>Я из команды № ____ и голосую за команду № ____ (не свою). Почему: ______________________</p><p style="margin-top:8px">Самооценка моего вклада: 1 · 2 · 3 · 4 · 5</p></div>
+  </div>
+</section>
+
+</main>
+
+<footer class="nav">
+  <button class="btn" id="prev" type="button">← Назад</button>
+  <span class="where" id="where"></span>
+  <button class="btn primary" id="next" type="button">Далее →</button>
+</footer>
+</div>
+
+<dialog id="jDlg" aria-label="Журнал открытий">
+  <div class="row" style="justify-content:space-between;margin-bottom:14px"><h2 style="font-size:24px">Журнал открытий</h2><button class="btn" id="jClose" type="button">Закрыть</button></div>
+  <div class="journal" id="journalDlg"></div>
+</dialog>
+
+<script>/* anime.js 3.2.2, MIT License */
+/*
+ * anime.js v3.2.2
+ * (c) 2023 Julian Garnier
+ * Released under the MIT license
+ * animejs.com
+ */
+
+!function(n,e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define(e):n.anime=e()}(this,function(){"use strict";var i={update:null,begin:null,loopBegin:null,changeBegin:null,change:null,changeComplete:null,loopComplete:null,complete:null,loop:1,direction:"normal",autoplay:!0,timelineOffset:0},M={duration:1e3,delay:0,endDelay:0,easing:"easeOutElastic(1, .5)",round:0},j=["translateX","translateY","translateZ","rotate","rotateX","rotateY","rotateZ","scale","scaleX","scaleY","scaleZ","skew","skewX","skewY","perspective","matrix","matrix3d"],l={CSS:{},springs:{}};function C(n,e,t){return Math.min(Math.max(n,e),t)}function u(n,e){return-1<n.indexOf(e)}function o(n,e){return n.apply(null,e)}var w={arr:function(n){return Array.isArray(n)},obj:function(n){return u(Object.prototype.toString.call(n),"Object")},pth:function(n){return w.obj(n)&&n.hasOwnProperty("totalLength")},svg:function(n){return n instanceof SVGElement},inp:function(n){return n instanceof HTMLInputElement},dom:function(n){return n.nodeType||w.svg(n)},str:function(n){return"string"==typeof n},fnc:function(n){return"function"==typeof n},und:function(n){return void 0===n},nil:function(n){return w.und(n)||null===n},hex:function(n){return/(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(n)},rgb:function(n){return/^rgb/.test(n)},hsl:function(n){return/^hsl/.test(n)},col:function(n){return w.hex(n)||w.rgb(n)||w.hsl(n)},key:function(n){return!i.hasOwnProperty(n)&&!M.hasOwnProperty(n)&&"targets"!==n&&"keyframes"!==n}};function d(n){n=/\(([^)]+)\)/.exec(n);return n?n[1].split(",").map(function(n){return parseFloat(n)}):[]}function c(r,t){var n=d(r),e=C(w.und(n[0])?1:n[0],.1,100),a=C(w.und(n[1])?100:n[1],.1,100),o=C(w.und(n[2])?10:n[2],.1,100),n=C(w.und(n[3])?0:n[3],.1,100),u=Math.sqrt(a/e),i=o/(2*Math.sqrt(a*e)),c=i<1?u*Math.sqrt(1-i*i):0,s=i<1?(i*u-n)/c:-n+u;function f(n){var e=t?t*n/1e3:n,e=i<1?Math.exp(-e*i*u)*(+Math.cos(c*e)+s*Math.sin(c*e)):(1+s*e)*Math.exp(-e*u);return 0===n||1===n?n:1-e}return t?f:function(){var n=l.springs[r];if(n)return n;for(var e=0,t=0;;)if(1===f(e+=1/6)){if(16<=++t)break}else t=0;return n=e*(1/6)*1e3,l.springs[r]=n}}function q(e){return void 0===e&&(e=10),function(n){return Math.ceil(C(n,1e-6,1)*e)*(1/e)}}var H=function(b,e,M,t){if(0<=b&&b<=1&&0<=M&&M<=1){var x=new Float32Array(11);if(b!==e||M!==t)for(var n=0;n<11;++n)x[n]=k(.1*n,b,M);return function(n){return b===e&&M===t||0===n||1===n?n:k(r(n),e,t)}}function r(n){for(var e=0,t=1;10!==t&&x[t]<=n;++t)e+=.1;var r=e+.1*((n-x[--t])/(x[t+1]-x[t])),a=O(r,b,M);if(.001<=a){for(var o=n,u=r,i=b,c=M,s=0;s<4;++s){var f=O(u,i,c);if(0===f)return u;u-=(k(u,i,c)-o)/f}return u}if(0===a)return r;for(var l,d,p=n,h=e,g=e+.1,m=b,v=M,y=0;0<(l=k(d=h+(g-h)/2,m,v)-p)?g=d:h=d,1e-7<Math.abs(l)&&++y<10;);return d}};function r(n,e){return 1-3*e+3*n}function k(n,e,t){return((r(e,t)*n+(3*t-6*e))*n+3*e)*n}function O(n,e,t){return 3*r(e,t)*n*n+2*(3*t-6*e)*n+3*e}e={linear:function(){return function(n){return n}}},t={Sine:function(){return function(n){return 1-Math.cos(n*Math.PI/2)}},Expo:function(){return function(n){return n?Math.pow(2,10*n-10):0}},Circ:function(){return function(n){return 1-Math.sqrt(1-n*n)}},Back:function(){return function(n){return n*n*(3*n-2)}},Bounce:function(){return function(n){for(var e,t=4;n<((e=Math.pow(2,--t))-1)/11;);return 1/Math.pow(4,3-t)-7.5625*Math.pow((3*e-2)/22-n,2)}},Elastic:function(n,e){void 0===e&&(e=.5);var t=C(n=void 0===n?1:n,1,10),r=C(e,.1,2);return function(n){return 0===n||1===n?n:-t*Math.pow(2,10*(n-1))*Math.sin((n-1-r/(2*Math.PI)*Math.asin(1/t))*(2*Math.PI)/r)}}},["Quad","Cubic","Quart","Quint"].forEach(function(n,e){t[n]=function(){return function(n){return Math.pow(n,e+2)}}}),Object.keys(t).forEach(function(n){var r=t[n];e["easeIn"+n]=r,e["easeOut"+n]=function(e,t){return function(n){return 1-r(e,t)(1-n)}},e["easeInOut"+n]=function(e,t){return function(n){return n<.5?r(e,t)(2*n)/2:1-r(e,t)(-2*n+2)/2}},e["easeOutIn"+n]=function(e,t){return function(n){return n<.5?(1-r(e,t)(1-2*n))/2:(r(e,t)(2*n-1)+1)/2}}});var e,t,s=e;function P(n,e){if(w.fnc(n))return n;var t=n.split("(")[0],r=s[t],a=d(n);switch(t){case"spring":return c(n,e);case"cubicBezier":return o(H,a);case"steps":return o(q,a);default:return o(r,a)}}function a(n){try{return document.querySelectorAll(n)}catch(n){}}function I(n,e){for(var t,r=n.length,a=2<=arguments.length?e:void 0,o=[],u=0;u<r;u++)u in n&&(t=n[u],e.call(a,t,u,n))&&o.push(t);return o}function f(n){return n.reduce(function(n,e){return n.concat(w.arr(e)?f(e):e)},[])}function p(n){return w.arr(n)?n:(n=w.str(n)?a(n)||n:n)instanceof NodeList||n instanceof HTMLCollection?[].slice.call(n):[n]}function h(n,e){return n.some(function(n){return n===e})}function g(n){var e,t={};for(e in n)t[e]=n[e];return t}function x(n,e){var t,r=g(n);for(t in n)r[t]=(e.hasOwnProperty(t)?e:n)[t];return r}function D(n,e){var t,r=g(n);for(t in e)r[t]=(w.und(n[t])?e:n)[t];return r}function V(n){var e,t,r,a,o,u,i;return w.rgb(n)?(e=/rgb\((\d+,\s*[\d]+,\s*[\d]+)\)/g.exec(t=n))?"rgba("+e[1]+",1)":t:w.hex(n)?(e=(e=n).replace(/^#?([a-f\d])([a-f\d])([a-f\d])$/i,function(n,e,t,r){return e+e+t+t+r+r}),e=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(e),"rgba("+parseInt(e[1],16)+","+parseInt(e[2],16)+","+parseInt(e[3],16)+",1)"):w.hsl(n)?(t=/hsl\((\d+),\s*([\d.]+)%,\s*([\d.]+)%\)/g.exec(t=n)||/hsla\((\d+),\s*([\d.]+)%,\s*([\d.]+)%,\s*([\d.]+)\)/g.exec(t),n=parseInt(t[1],10)/360,u=parseInt(t[2],10)/100,i=parseInt(t[3],10)/100,t=t[4]||1,0==u?r=a=o=i:(r=c(u=2*i-(i=i<.5?i*(1+u):i+u-i*u),i,n+1/3),a=c(u,i,n),o=c(u,i,n-1/3)),"rgba("+255*r+","+255*a+","+255*o+","+t+")"):void 0;function c(n,e,t){return t<0&&(t+=1),1<t&&--t,t<1/6?n+6*(e-n)*t:t<.5?e:t<2/3?n+(e-n)*(2/3-t)*6:n}}function B(n){n=/[+-]?\d*\.?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?(%|px|pt|em|rem|in|cm|mm|ex|ch|pc|vw|vh|vmin|vmax|deg|rad|turn)?$/.exec(n);if(n)return n[1]}function m(n,e){return w.fnc(n)?n(e.target,e.id,e.total):n}function v(n,e){return n.getAttribute(e)}function y(n,e,t){var r,a,o;return h([t,"deg","rad","turn"],B(e))?e:(r=l.CSS[e+t],w.und(r)?(a=document.createElement(n.tagName),(n=n.parentNode&&n.parentNode!==document?n.parentNode:document.body).appendChild(a),a.style.position="absolute",a.style.width=100+t,o=100/a.offsetWidth,n.removeChild(a),n=o*parseFloat(e),l.CSS[e+t]=n):r)}function $(n,e,t){var r;if(e in n.style)return r=e.replace(/([a-z])([A-Z])/g,"$1-$2").toLowerCase(),e=n.style[e]||getComputedStyle(n).getPropertyValue(r)||"0",t?y(n,e,t):e}function b(n,e){return w.dom(n)&&!w.inp(n)&&(!w.nil(v(n,e))||w.svg(n)&&n[e])?"attribute":w.dom(n)&&h(j,e)?"transform":w.dom(n)&&"transform"!==e&&$(n,e)?"css":null!=n[e]?"object":void 0}function W(n){if(w.dom(n)){for(var e,t=n.style.transform||"",r=/(\w+)\(([^)]*)\)/g,a=new Map;e=r.exec(t);)a.set(e[1],e[2]);return a}}function X(n,e,t,r){var a=u(e,"scale")?1:0+(u(a=e,"translate")||"perspective"===a?"px":u(a,"rotate")||u(a,"skew")?"deg":void 0),o=W(n).get(e)||a;return t&&(t.transforms.list.set(e,o),t.transforms.last=e),r?y(n,o,r):o}function T(n,e,t,r){switch(b(n,e)){case"transform":return X(n,e,r,t);case"css":return $(n,e,t);case"attribute":return v(n,e);default:return n[e]||0}}function E(n,e){var t=/^(\*=|\+=|-=)/.exec(n);if(!t)return n;var r=B(n)||0,a=parseFloat(e),o=parseFloat(n.replace(t[0],""));switch(t[0][0]){case"+":return a+o+r;case"-":return a-o+r;case"*":return a*o+r}}function Y(n,e){var t;return w.col(n)?V(n):/\s/g.test(n)?n:(t=(t=B(n))?n.substr(0,n.length-t.length):n,e?t+e:t)}function F(n,e){return Math.sqrt(Math.pow(e.x-n.x,2)+Math.pow(e.y-n.y,2))}function Z(n){for(var e,t=n.points,r=0,a=0;a<t.numberOfItems;a++){var o=t.getItem(a);0<a&&(r+=F(e,o)),e=o}return r}function G(n){if(n.getTotalLength)return n.getTotalLength();switch(n.tagName.toLowerCase()){case"circle":return 2*Math.PI*v(n,"r");case"rect":return 2*v(t=n,"width")+2*v(t,"height");case"line":return F({x:v(t=n,"x1"),y:v(t,"y1")},{x:v(t,"x2"),y:v(t,"y2")});case"polyline":return Z(n);case"polygon":return e=n.points,Z(n)+F(e.getItem(e.numberOfItems-1),e.getItem(0))}var e,t}function Q(n,e){var e=e||{},n=e.el||function(n){for(var e=n.parentNode;w.svg(e)&&w.svg(e.parentNode);)e=e.parentNode;return e}(n),t=n.getBoundingClientRect(),r=v(n,"viewBox"),a=t.width,t=t.height,e=e.viewBox||(r?r.split(" "):[0,0,a,t]);return{el:n,viewBox:e,x:+e[0],y:+e[1],w:a,h:t,vW:e[2],vH:e[3]}}function z(n,e){var t=/[+-]?\d*\.?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g,r=Y(w.pth(n)?n.totalLength:n,e)+"";return{original:r,numbers:r.match(t)?r.match(t).map(Number):[0],strings:w.str(n)||e?r.split(t):[]}}function A(n){return I(n?f(w.arr(n)?n.map(p):p(n)):[],function(n,e,t){return t.indexOf(n)===e})}function _(n){var t=A(n);return t.map(function(n,e){return{target:n,id:e,total:t.length,transforms:{list:W(n)}}})}function R(e){for(var t=I(f(e.map(function(n){return Object.keys(n)})),function(n){return w.key(n)}).reduce(function(n,e){return n.indexOf(e)<0&&n.push(e),n},[]),a={},n=0;n<t.length;n++)!function(n){var r=t[n];a[r]=e.map(function(n){var e,t={};for(e in n)w.key(e)?e==r&&(t.value=n[e]):t[e]=n[e];return t})}(n);return a}function J(n,e){var t,r=[],a=e.keyframes;for(t in e=a?D(R(a),e):e)w.key(t)&&r.push({name:t,tweens:function(n,t){var e,r=g(t),a=(/^spring/.test(r.easing)&&(r.duration=c(r.easing)),w.arr(n)&&(2===(e=n.length)&&!w.obj(n[0])?n={value:n}:w.fnc(t.duration)||(r.duration=t.duration/e)),w.arr(n)?n:[n]);return a.map(function(n,e){n=w.obj(n)&&!w.pth(n)?n:{value:n};return w.und(n.delay)&&(n.delay=e?0:t.delay),w.und(n.endDelay)&&(n.endDelay=e===a.length-1?t.endDelay:0),n}).map(function(n){return D(n,r)})}(e[t],n)});return r}function K(i,c){var s;return i.tweens.map(function(n){var n=function(n,e){var t,r={};for(t in n){var a=m(n[t],e);w.arr(a)&&1===(a=a.map(function(n){return m(n,e)})).length&&(a=a[0]),r[t]=a}return r.duration=parseFloat(r.duration),r.delay=parseFloat(r.delay),r}(n,c),e=n.value,t=w.arr(e)?e[1]:e,r=B(t),a=T(c.target,i.name,r,c),o=s?s.to.original:a,u=w.arr(e)?e[0]:o,a=B(u)||B(a),r=r||a;return w.und(t)&&(t=o),n.from=z(u,r),n.to=z(E(t,u),r),n.start=s?s.end:0,n.end=n.start+n.delay+n.duration+n.endDelay,n.easing=P(n.easing,n.duration),n.isPath=w.pth(e),n.isPathTargetInsideSVG=n.isPath&&w.svg(c.target),n.isColor=w.col(n.from.original),n.isColor&&(n.round=1),s=n})}var U={css:function(n,e,t){return n.style[e]=t},attribute:function(n,e,t){return n.setAttribute(e,t)},object:function(n,e,t){return n[e]=t},transform:function(n,e,t,r,a){var o;r.list.set(e,t),e!==r.last&&!a||(o="",r.list.forEach(function(n,e){o+=e+"("+n+") "}),n.style.transform=o)}};function nn(n,u){_(n).forEach(function(n){for(var e in u){var t=m(u[e],n),r=n.target,a=B(t),o=T(r,e,a,n),t=E(Y(t,a||B(o)),o),a=b(r,e);U[a](r,e,t,n.transforms,!0)}})}function en(n,e){return I(f(n.map(function(o){return e.map(function(n){var e,t,r=o,a=b(r.target,n.name);if(a)return t=(e=K(n,r))[e.length-1],{type:a,property:n.name,animatable:r,tweens:e,duration:t.end,delay:e[0].delay,endDelay:t.endDelay}})})),function(n){return!w.und(n)})}function tn(n,e){function t(n){return n.timelineOffset||0}var r=n.length,a={};return a.duration=r?Math.max.apply(Math,n.map(function(n){return t(n)+n.duration})):e.duration,a.delay=r?Math.min.apply(Math,n.map(function(n){return t(n)+n.delay})):e.delay,a.endDelay=r?a.duration-Math.max.apply(Math,n.map(function(n){return t(n)+n.duration-n.endDelay})):e.endDelay,a}var rn=0;var N,S=[],an=("undefined"!=typeof document&&document.addEventListener("visibilitychange",function(){L.suspendWhenDocumentHidden&&(n()?N=cancelAnimationFrame(N):(S.forEach(function(n){return n._onDocumentVisibility()}),an()))}),function(){!(N||n()&&L.suspendWhenDocumentHidden)&&0<S.length&&(N=requestAnimationFrame(on))});function on(n){for(var e=S.length,t=0;t<e;){var r=S[t];r.paused?(S.splice(t,1),e--):(r.tick(n),t++)}N=0<t?requestAnimationFrame(on):void 0}function n(){return document&&document.hidden}function L(n){var c,s=0,f=0,l=0,d=0,p=null;function h(n){var e=window.Promise&&new Promise(function(n){return p=n});return n.finished=e}e=x(i,n=n=void 0===n?{}:n),t=J(r=x(M,n),n),n=_(n.targets),r=tn(t=en(n,t),r),a=rn,rn++;var e,t,r,a,k=D(e,{id:a,children:[],animatables:n,animations:t,duration:r.duration,delay:r.delay,endDelay:r.endDelay});h(k);function g(){var n=k.direction;"alternate"!==n&&(k.direction="normal"!==n?"normal":"reverse"),k.reversed=!k.reversed,c.forEach(function(n){return n.reversed=k.reversed})}function m(n){return k.reversed?k.duration-n:n}function o(){s=0,f=m(k.currentTime)*(1/L.speed)}function v(n,e){e&&e.seek(n-e.timelineOffset)}function y(e){for(var n=0,t=k.animations,r=t.length;n<r;){for(var a=t[n],o=a.animatable,u=a.tweens,i=u.length-1,c=u[i],i=(i&&(c=I(u,function(n){return e<n.end})[0]||c),C(e-c.start-c.delay,0,c.duration)/c.duration),s=isNaN(i)?1:c.easing(i),f=c.to.strings,l=c.round,d=[],p=c.to.numbers.length,h=void 0,g=0;g<p;g++){var m=void 0,v=c.to.numbers[g],y=c.from.numbers[g]||0,m=c.isPath?function(e,t,n){function r(n){return e.el.getPointAtLength(1<=t+(n=void 0===n?0:n)?t+n:0)}var a=Q(e.el,e.svg),o=r(),u=r(-1),i=r(1),c=n?1:a.w/a.vW,s=n?1:a.h/a.vH;switch(e.property){case"x":return(o.x-a.x)*c;case"y":return(o.y-a.y)*s;case"angle":return 180*Math.atan2(i.y-u.y,i.x-u.x)/Math.PI}}(c.value,s*v,c.isPathTargetInsideSVG):y+s*(v-y);!l||c.isColor&&2<g||(m=Math.round(m*l)/l),d.push(m)}var b=f.length;if(b)for(var h=f[0],M=0;M<b;M++){f[M];var x=f[M+1],w=d[M];isNaN(w)||(h+=x?w+x:w+" ")}else h=d[0];U[a.type](o.target,a.property,h,o.transforms),a.currentValue=h,n++}}function b(n){k[n]&&!k.passThrough&&k[n](k)}function u(n){var e=k.duration,t=k.delay,r=e-k.endDelay,a=m(n);if(k.progress=C(a/e*100,0,100),k.reversePlayback=a<k.currentTime,c){var o=a;if(k.reversePlayback)for(var u=d;u--;)v(o,c[u]);else for(var i=0;i<d;i++)v(o,c[i])}!k.began&&0<k.currentTime&&(k.began=!0,b("begin")),!k.loopBegan&&0<k.currentTime&&(k.loopBegan=!0,b("loopBegin")),a<=t&&0!==k.currentTime&&y(0),(r<=a&&k.currentTime!==e||!e)&&y(e),t<a&&a<r?(k.changeBegan||(k.changeBegan=!0,k.changeCompleted=!1,b("changeBegin")),b("change"),y(a)):k.changeBegan&&(k.changeCompleted=!0,k.changeBegan=!1,b("changeComplete")),k.currentTime=C(a,0,e),k.began&&b("update"),e<=n&&(f=0,k.remaining&&!0!==k.remaining&&k.remaining--,k.remaining?(s=l,b("loopComplete"),k.loopBegan=!1,"alternate"===k.direction&&g()):(k.paused=!0,k.completed||(k.completed=!0,b("loopComplete"),b("complete"),!k.passThrough&&"Promise"in window&&(p(),h(k)))))}return k.reset=function(){var n=k.direction;k.passThrough=!1,k.currentTime=0,k.progress=0,k.paused=!0,k.began=!1,k.loopBegan=!1,k.changeBegan=!1,k.completed=!1,k.changeCompleted=!1,k.reversePlayback=!1,k.reversed="reverse"===n,k.remaining=k.loop,c=k.children;for(var e=d=c.length;e--;)k.children[e].reset();(k.reversed&&!0!==k.loop||"alternate"===n&&1===k.loop)&&k.remaining++,y(k.reversed?k.duration:0)},k._onDocumentVisibility=o,k.set=function(n,e){return nn(n,e),k},k.tick=function(n){u(((l=n)+(f-(s=s||l)))*L.speed)},k.seek=function(n){u(m(n))},k.pause=function(){k.paused=!0,o()},k.play=function(){k.paused&&(k.completed&&k.reset(),k.paused=!1,S.push(k),o(),an())},k.reverse=function(){g(),k.completed=!k.reversed,o()},k.restart=function(){k.reset(),k.play()},k.remove=function(n){cn(A(n),k)},k.reset(),k.autoplay&&k.play(),k}function un(n,e){for(var t=e.length;t--;)h(n,e[t].animatable.target)&&e.splice(t,1)}function cn(n,e){var t=e.animations,r=e.children;un(n,t);for(var a=r.length;a--;){var o=r[a],u=o.animations;un(n,u),u.length||o.children.length||r.splice(a,1)}t.length||r.length||e.pause()}return L.version="3.2.1",L.speed=1,L.suspendWhenDocumentHidden=!0,L.running=S,L.remove=function(n){for(var e=A(n),t=S.length;t--;)cn(e,S[t])},L.get=T,L.set=nn,L.convertPx=y,L.path=function(n,e){var t=w.str(n)?a(n)[0]:n,r=e||100;return function(n){return{property:n,el:t,svg:Q(t),totalLength:G(t)*(r/100)}}},L.setDashoffset=function(n){var e=G(n);return n.setAttribute("stroke-dasharray",e),e},L.stagger=function(n,e){var i=(e=void 0===e?{}:e).direction||"normal",c=e.easing?P(e.easing):null,s=e.grid,f=e.axis,l=e.from||0,d="first"===l,p="center"===l,h="last"===l,g=w.arr(n),m=g?parseFloat(n[0]):parseFloat(n),v=g?parseFloat(n[1]):0,y=B(g?n[1]:n)||0,b=e.start||0+(g?m:0),M=[],x=0;return function(n,e,t){if(d&&(l=0),p&&(l=(t-1)/2),h&&(l=t-1),!M.length){for(var r,a,o,u=0;u<t;u++)s?(r=p?(s[0]-1)/2:l%s[0],a=p?(s[1]-1)/2:Math.floor(l/s[0]),r=r-u%s[0],a=a-Math.floor(u/s[0]),o=Math.sqrt(r*r+a*a),"x"===f&&(o=-r),M.push(o="y"===f?-a:o)):M.push(Math.abs(l-u)),x=Math.max.apply(Math,M);c&&(M=M.map(function(n){return c(n/x)*x})),"reverse"===i&&(M=M.map(function(n){return f?n<0?-1*n:-n:Math.abs(x-n)}))}return b+(g?(v-m)/x:m)*(Math.round(100*M[e])/100)+y}},L.timeline=function(u){var i=L(u=void 0===u?{}:u);return i.duration=0,i.add=function(n,e){var t=S.indexOf(i),r=i.children;function a(n){n.passThrough=!0}-1<t&&S.splice(t,1);for(var o=0;o<r.length;o++)a(r[o]);t=D(n,x(M,u)),t.targets=t.targets||u.targets,n=i.duration,t.autoplay=!1,t.direction=i.direction,t.timelineOffset=w.und(e)?n:E(e,n),a(i),i.seek(t.timelineOffset),e=L(t),a(e),r.push(e),n=tn(r,u);return i.delay=n.delay,i.endDelay=n.endDelay,i.duration=n.duration,i.seek(0),i.reset(),i.autoplay&&i.play(),i},i},L.easing=P,L.penner=s,L.random=function(n,e){return Math.floor(Math.random()*(e-n+1))+n},L});
+</script>
+<script>
+(() => {
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const HAS = () => !!window.anime && !RM;
+const last = v => Array.isArray(v) ? v[v.length-1] : (typeof v === 'function' ? undefined : v);
+function jump(o){ const raw = o.targets; const t = typeof raw === 'string' ? [...document.querySelectorAll(raw)] : Array.isArray(raw) ? raw : (raw && raw.length !== undefined && !raw.setAttribute ? [...raw] : [raw]);
+  t.forEach(el => { if (!el || !el.style) return; if (o.width !== undefined) el.style.width = last(o.width); if (o.opacity !== undefined) el.style.opacity = last(o.opacity);
+    ['cx','cy','r'].forEach(k => { if (o[k] !== undefined) el.setAttribute(k, last(o[k])); }); if (o.strokeDashoffset !== undefined) el.style.strokeDashoffset = last(o.strokeDashoffset); }); o.complete && o.complete(); }
+const A = (o) => HAS() ? anime(o) : (jump(o), null);
+const stg = (...a) => window.anime ? anime.stagger(...a) : 0;
+const $ = (s, r=document) => r.querySelector(s), $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const NS = 'http://www.w3.org/2000/svg';
+const S = (tag, at={}, p) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); p && p.appendChild(e); return e; };
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const KEY = 'archlab2_';
+const store = { get(k, d){ try { const v = localStorage.getItem(KEY+k); return v ? JSON.parse(v) : d; } catch(e){ return d; } }, set(k, v){ try { localStorage.setItem(KEY+k, JSON.stringify(v)); } catch(e){} } };
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+const PRINT = !!window.__PRINT__;
+if (PRINT) { store.set = () => {}; document.body.classList.add('print'); $$('details').forEach(d => d.open = true); }
+else $$('[data-print-only]').forEach(el => el.remove());
+let ST = PRINT ? null : store.get('state', null);
+ST = ST || { polls:[[0,0,0,0],[0,0,0,0]], pred:{}, done:{}, text:{}, found:{}, named:false, weights:[[20,20,20,20,20],[20,20,20,20,20]], story:null };
+const save = () => store.set('state', ST);
+if (PRINT) { ST.named = true; ST.found = { D5:true, D6:true }; ST.weights = [[40,30,10,10,10],[5,5,30,30,30]]; }
+
+/* concepts */
+const CONCEPTS = {
+  D1:{ title:'Изоляция отказов', src:'Эксперимент 1', text:'Если части системы работают в отдельных процессах, сбой одной части не останавливает остальные. Когда вся бизнес-логика живёт в одном процессе, её сбой останавливает всё.', key:'c_fail' },
+  D2:{ title:'Горизонтальное масштабирование и узкое место', src:'Эксперимент 2', text:'Под нагрузкой систему масштабируют, добавляя одинаковые копии за балансировщиком. Копировать можно всё приложение целиком или только нагруженную часть. Общий компонент, который не копируется (например, единственная база данных), становится узким местом.', key:'c_load' },
+  D3:{ title:'Цена сложности', src:'Эксперимент 3', text:'Каждый отдельно развёртываемый сервис требует инфраструктуры: шлюза, конвейера сборки и развёртывания, мониторинга, трассировки. Для маленькой команды и короткого срока эта цена может сорвать запуск.', key:'c_time' },
+  D4:{ title:'Закон Конвея (1968)', src:'Эксперимент 4', text:'Организации проектируют системы, которые копируют структуру их коммуникаций. Несколько независимых команд естественно приходят к независимым сервисам, одна небольшая команда — к единому приложению.', key:'c_teams' },
+  D5:{ title:'Архитектурные стили', src:'Сводка', text:'A — монолит, B — трёхуровневая (многоуровневая) архитектура, C — микросервисы. Архитектура — фундаментальные свойства системы, воплощённые в её элементах, связях и принципах развития (ISO/IEC/IEEE 42010). Проще: решения, которые дорого менять.', key:null },
+  D6:{ title:'Выбор зависит от приоритетов', src:'Метод выбора', text:'Лучшей архитектуры не бывает. Выбор — многокритериальное решение: критериям качества задают веса под текущие условия, сравнивают 2–3 варианта и фиксируют решение в ADR. Когда условия меняются, решение пересматривают.', key:'mxWhy' },
+};
+const ORDER = ['D1','D2','D3','D4','D5','D6'];
+function conceptHTML(id){ const c = CONCEPTS[id]; const yours = c.key && ST.text[c.key] ? `<div class="yours"><b>Ваша формулировка:</b> ${esc(ST.text[c.key])}</div>` : '';
+  return `<div class="concept"><span class="eyebrow">Открытие · ${c.src}</span><h3>${c.title}</h3><p>${c.text}</p>${yours}</div>`; }
+function unlock(id, animate=true){
+  if (!ST.found[id]) { ST.found[id] = true; save(); }
+  $$(`[data-concept="${id}"]`).forEach(h => { h.innerHTML = conceptHTML(id); if (animate) A({ targets:h.firstElementChild, opacity:[0,1], scale:[.94,1], duration:700, easing:'easeOutBack' }); });
+  updJournal(animate);
+}
+function updJournal(animate){
+  const n = ORDER.filter(k => ST.found[k]).length; $('#jN').textContent = n;
+  if (animate) A({ targets:'#jOpen', scale:[1.18,1], duration:500, easing:'easeOutBack' });
+  const html = ORDER.map((k, i) => { const c = CONCEPTS[k], o = !!ST.found[k];
+    return `<div class="jcard ${o?'open':'lock'}"><span class="num">${o?'✓':'○'} Открытие ${i+1} · ${c.src}</span><h3>${o ? c.title : 'Ещё не открыто'}</h3>${o ? `<p style="font-size:14px">${c.text}</p>${c.key && ST.text[c.key] ? `<div class="yours"><b>Вы сказали:</b> ${esc(ST.text[c.key])}</div>` : ''}` : '<p class="muted" style="font-size:14px">Проведите эксперимент и сформулируйте вывод.</p>'}</div>`; }).join('');
+  $('#journalDlg').innerHTML = html; $('#journalFinal').innerHTML = html;
+}
+$('#jOpen').onclick = () => { updJournal(false); const d = $('#jDlg'); d.showModal ? d.showModal() : d.setAttribute('open',''); };
+$('#jClose').onclick = () => { const d = $('#jDlg'); d.close ? d.close() : d.removeAttribute('open'); };
+document.addEventListener('click', e => { const b = e.target.closest('[data-unlock]'); if (!b) return;
+  if (b.hasAttribute('data-force')) { unlock(b.dataset.unlock); return; }
+  const src = $('#' + b.dataset.src); if (!src || src.value.trim().length < 8) { if (src) { src.focus(); A({ targets:src, translateX:[0,-6,6,-4,4,0], duration:400, easing:'easeInOutSine' }); } return; }
+  unlock(b.dataset.unlock); });
+document.addEventListener('input', e => { const t = e.target; if (t.dataset && t.dataset.save) { ST.text[t.dataset.save] = t.value; save(); syncUnlockBtns(); } if (t.id === 'h0why') { ST.text.h0 = t.value; save(); } });
+function syncUnlockBtns(){ $$('[data-unlock][data-src]').forEach(b => { const s = $('#'+b.dataset.src); b.disabled = !s || s.value.trim().length < 8; }); }
+
+/* navigation */
+const scenes = $$('.scene'); let cur = 0; const onEnter = {};
+const idx = n => scenes.findIndex(s => s.dataset.name === n);
+scenes.forEach((s, i) => { const b = document.createElement('button'); b.type = 'button'; b.title = s.dataset.name; b.setAttribute('aria-label', (i+1)+'. '+s.dataset.name); b.onclick = () => go(i); $('#rail').appendChild(b); });
+function go(i){
+  i = Math.max(0, Math.min(scenes.length-1, i));
+  scenes.forEach(s => s.hidden = true); cur = i; const s = scenes[cur]; s.hidden = false;
+  $$('#rail button').forEach((b, k) => b.className = k < cur ? 'done' : k === cur ? 'cur' : '');
+  $('#where').textContent = (cur+1) + ' / ' + scenes.length + ' · ' + s.dataset.name;
+  $('#prev').disabled = cur === 0; $('#next').disabled = cur === scenes.length-1;
+  window.scrollTo({top:0});
+  A({ targets:$$('.anim', s), translateY:[18,0], opacity:[0,1], delay:stg(70), duration:550, easing:'easeOutCubic' });
+  onEnter[cur] && onEnter[cur]();
+}
+$('#prev').onclick = () => go(cur-1); $('#next').onclick = () => go(cur+1);
+$$('[data-go]').forEach(b => b.onclick = () => go(+b.dataset.go));
+document.addEventListener('keydown', e => { if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || $('#jDlg').open) return; if (e.key === 'ArrowRight' || e.key === 'PageDown') go(cur+1); if (e.key === 'ArrowLeft' || e.key === 'PageUp') go(cur-1); });
+$('#resetAll').onclick = () => { const b = $('#resetAll'); if (b.dataset.arm !== '1') { b.dataset.arm = '1'; b.textContent = 'Нажмите ещё раз, чтобы стереть все ответы'; return; } try { localStorage.removeItem(KEY+'state'); } catch(e){} location.reload(); };
+
+/* hero */
+(function(){ const svg = $('#heroNet');
+  const N = [[260,60],[110,140],[410,140],[60,280],[200,250],[330,250],[460,290],[150,370],[300,370],[410,380]], E = [[0,1],[0,2],[1,3],[1,4],[2,5],[2,6],[4,7],[4,8],[5,8],[5,9],[6,9],[3,7]];
+  E.forEach(([a,b]) => S('line', {x1:N[a][0],y1:N[a][1],x2:N[b][0],y2:N[b][1],stroke:'#2E4677','stroke-width':2}, svg));
+  const boxes = N.map(([x,y], i) => S('rect', {x:x-26,y:y-17,width:52,height:34,rx:8,fill:i===0?'#FFB020':'#16274A',stroke:'#3B5A92','stroke-width':1.5}, svg));
+  const q = S('text', {x:260,y:67,'text-anchor':'middle','font-family':'Unbounded, sans-serif','font-size':20,'font-weight':700,fill:'#1A1205'}, svg); q.textContent = '?';
+  A({ targets:boxes, opacity:[0,1], scale:[.4,1], delay:stg(80), duration:700, easing:'easeOutBack' });
+  if (!HAS()) return;
+  setInterval(() => { if (cur !== 0 || document.hidden) return; const [a,b] = E[Math.floor(Math.random()*E.length)]; const p = S('circle', {cx:N[a][0],cy:N[a][1],r:5,fill:'#3FD0A4'}, svg);
+    anime({ targets:p, cx:N[b][0], cy:N[b][1], duration:900, easing:'easeInOutSine', complete:() => p.remove() }); }, 260);
+})();
+
+/* polls */
+const OPTS = [['1','Одно приложение, всё вместе'],['2','Разделить на клиент, сервер и базу'],['3','Много маленьких независимых сервисов'],['?','Не знаю, нужно разобраться']];
+function renderPoll(k, host){
+  host.innerHTML = '';
+  OPTS.forEach(([l, t], i) => { const b = document.createElement('button'); b.className = 'opt'; b.type = 'button';
+    b.innerHTML = `<span class="letter">${l}</span><span style="min-width:0"><span>${t}</span><span class="bar"><i></i></span></span><span><span class="cnt">0</span><span class="minus" aria-label="Убрать голос">−</span></span>`;
+    b.onclick = e => { if (e.target.classList.contains('minus')) ST.polls[k][i] = Math.max(0, ST.polls[k][i]-1); else ST.polls[k][i]++; save(); updPoll(k); A({ targets:$('.letter', b), scale:[1.25,1], duration:350, easing:'easeOutBack' }); };
+    host.appendChild(b); });
+  updPoll(k);
+}
+function updPoll(k){ const host = k ? $('#poll1') : $('#poll0'); const mx = Math.max(1, ...ST.polls[k]);
+  $$('.opt', host).forEach((b, i) => { $('.cnt', b).textContent = ST.polls[k][i]; A({ targets:$('.bar>i', b), width:(ST.polls[k][i]/mx*100)+'%', duration:500, easing:'easeOutCubic' }); });
+  if (k) renderCmp(); }
+function renderCmp(){ const host = $('#pollCmp'); const t0 = ST.polls[0].reduce((a,b)=>a+b,0) || 1, t1 = ST.polls[1].reduce((a,b)=>a+b,0) || 1;
+  if (!host.children.length) OPTS.forEach(([l]) => host.insertAdjacentHTML('beforeend', `<div class="cmpbar"><span class="letter">${l}</span><div class="bars"><span class="bar b0"><i></i><span></span></span><span class="bar"><i></i><span></span></span></div></div>`));
+  $$('.cmpbar', host).forEach((r, i) => { const [b0, b1] = $$('.bar', r); const p0 = Math.round(ST.polls[0][i]/t0*100), p1 = Math.round(ST.polls[1][i]/t1*100);
+    $('span', b0).textContent = p0+'%'; $('span', b1).textContent = p1+'%'; A({ targets:$('i', b0), width:p0+'%', duration:700, easing:'easeOutCubic' }); A({ targets:$('i', b1), width:p1+'%', duration:700, delay:150, easing:'easeOutCubic' }); });
+  $('#h0back').innerHTML = ST.text.h0 ? `Довод в начале лекции: <b style="color:var(--soft)">«${esc(ST.text.h0)}»</b>. Выдерживает ли он ваши эксперименты?` : ''; }
+renderPoll(0, $('#poll0')); renderPoll(1, $('#poll1'));
+if (ST.text.h0) $('#h0why').value = ST.text.h0;
+if (ST.text.obs0) $('#obs0').value = ST.text.obs0;
+
+/* architecture engine */
+const SPEC = {
+  A:{ real:'Монолит', nodes:{
+      cl:{x:5,y:125,w:62,h:50,t:'Клиенты',c:'#2A6F97'}, lb:{x:74,y:125,w:58,h:50,t:'Баланс.',c:'#5C4D7D',onLoad:true},
+      app:{x:140,y:15,w:212,h:270,c:'none',frame:true,label:'одна рамка = один процесс'},
+      ui:{x:152,y:40,w:188,h:38,t:'Интерфейс',c:'#2A6F97'}, ord:{x:152,y:98,w:58,h:58,t:'Заказы',c:'#1F3462'}, pay:{x:217,y:98,w:58,h:58,t:'Оплата',c:'#1F3462'}, del:{x:282,y:98,w:58,h:58,t:'Доставка',c:'#1F3462'},
+      dal:{x:152,y:176,w:188,h:38,t:'Доступ к данным',c:'#4A5A7A'}, db:{x:378,y:112,w:76,h:76,t:'БД',db:true} },
+    edges:[['cl','ui','noLoad'],['cl','lb','load'],['lb','ui','load'],['ui','ord'],['ui','pay'],['ui','del'],['ord','dal'],['pay','dal'],['del','dal'],['dal','db']],
+    route:(t,s) => ['cl', ...(s.load?['lb']:[]), 'ui', t, 'dal', 'db'], targets:['ord','pay','del'], failAt:(t,s) => s.fail ? 'ui' : null, crash:['app','ui','ord','pay','del','dal'], scale:'app' },
+  B:{ real:'Трёхуровневая', nodes:{
+      br:{x:5,y:60,w:92,h:46,t:'Браузер',c:'#2A6F97'}, mob:{x:5,y:194,w:92,h:46,t:'Мобильное',c:'#2A6F97'}, lb:{x:118,y:125,w:60,h:50,t:'Баланс.',c:'#5C4D7D',onLoad:true},
+      app:{x:200,y:95,w:136,h:110,t:'Сервер',t2:'заказы · оплата · доставка',c:'#1F3462'}, db:{x:370,y:105,w:84,h:90,t:'БД',db:true} },
+    edges:[['br','app','noLoad'],['mob','app','noLoad'],['br','lb','load'],['mob','lb','load'],['lb','app','load'],['app','db']],
+    route:(t,s) => [t, ...(s.load?['lb']:[]), 'app', 'db'], targets:['br','mob'], failAt:(t,s) => s.fail ? 'app' : null, crash:['app'], scale:'app', hot:'db' },
+  C:{ real:'Микросервисы', nodes:{
+      cl:{x:5,y:125,w:62,h:50,t:'Клиенты',c:'#2A6F97'}, gw:{x:84,y:110,w:72,h:80,t:'Шлюз',c:'#4A5A7A'},
+      ord:{x:186,y:22,w:96,h:54,t:'Заказы',c:'#1F3462'}, pay:{x:186,y:123,w:96,h:54,t:'Оплата',c:'#1F3462'}, del:{x:186,y:224,w:96,h:54,t:'Доставка',c:'#1F3462'},
+      d1:{x:304,y:27,w:52,h:44,t:'БД',db:true}, d2:{x:304,y:128,w:52,h:44,t:'БД',db:true}, d3:{x:304,y:229,w:52,h:44,t:'БД',db:true},
+      mq:{x:378,y:110,w:76,h:80,t:'Очередь',c:'#5C4D7D'} },
+    edges:[['cl','gw'],['gw','ord'],['gw','pay'],['gw','del'],['ord','d1'],['pay','d2'],['del','d3'],['ord','mq','dash'],['pay','mq','dash'],['del','mq','dash']],
+    route:(t) => ['cl','gw',t,{ord:'d1',pay:'d2',del:'d3'}[t]], targets:['ord','pay','del'], failAt:(t,s) => (s.fail && t === 'pay') ? 'pay' : null, crash:['pay'], scale:'ord' },
+};
+const ctr = n => ({ x:n.x+n.w/2, y:n.y+n.h/2 });
+function Arch(svg, key){
+  const sp = SPEC[key]; const st = { fail:false, load:false }; let G = {}, pk;
+  function draw(){
+    svg.innerHTML = ''; G = {}; const N = sp.nodes; const gE = S('g', {}, svg), gN = S('g', {}, svg); pk = S('g', {}, svg);
+    sp.edges.forEach(([a,b,m]) => { if (m === 'load' && !st.load) return; if (m === 'noLoad' && st.load) return; const p = ctr(N[a]), q = ctr(N[b]);
+      S('line', {x1:p.x,y1:p.y,x2:q.x,y2:q.y,stroke:'#2E4677','stroke-width':2,'stroke-dasharray':m === 'dash' ? '4 4' : ''}, gE); });
+    for (const [id, n] of Object.entries(N)) { if (n.onLoad && !st.load) continue; const g = S('g', {'data-id':id}, gN); G[id] = g;
+      if (st.load && id === sp.scale) [12,6].forEach(o => S('rect', {x:n.x+o,y:n.y+o,width:n.w,height:n.h,rx:10,fill:n.frame?'#0F1A30':n.c,stroke:'#3B5A92','stroke-width':1.2,opacity:.5,class:'ghost'}, g));
+      if (n.db) { const ry = 8; g.shape = S('path', {d:`M${n.x},${n.y+ry} v${n.h-2*ry} a${n.w/2},${ry} 0 0 0 ${n.w},0 v-${n.h-2*ry}`, fill:'#1C6B5C', stroke:'#3FD0A4','stroke-width':1.5}, g); S('ellipse', {cx:n.x+n.w/2, cy:n.y+ry, rx:n.w/2, ry, fill:'#238A75', stroke:'#3FD0A4','stroke-width':1.5}, g); }
+      else g.shape = S('rect', {x:n.x,y:n.y,width:n.w,height:n.h,rx:10,fill:n.frame?'rgba(90,169,255,.04)':n.c,stroke:n.frame?'#5AA9FF':'#3B5A92','stroke-width':1.5,'stroke-dasharray':n.frame?'6 5':''}, g);
+      if (n.label) { const t = S('text', {x:n.x+n.w/2,y:n.y+n.h-10,'text-anchor':'middle',class:'small'}, g); t.textContent = n.label; }
+      if (n.t) { const t = S('text', {x:n.x+n.w/2,y:n.y+n.h/2+(n.db?7:(n.t2?-2:4)),'text-anchor':'middle'}, g); t.textContent = n.t; }
+      if (n.t2) { const t = S('text', {x:n.x+n.w/2,y:n.y+n.h/2+16,'text-anchor':'middle',class:'small'}, g); t.textContent = n.t2; }
+      if (st.load && id === sp.scale) { const t = S('text', {x:n.x+n.w-5,y:n.y+14,'text-anchor':'end',class:'small',style:'fill:#FFB020;font-weight:600'}, g); t.textContent = '×3'; } }
+    if (st.fail) sp.crash.forEach(id => { const g = G[id]; if (!g) return; g.shape.setAttribute('stroke','#FF5D6C'); g.shape.setAttribute('fill', N[id].frame ? 'rgba(255,93,108,.08)' : '#5A1F2A'); });
+    if (st.load && sp.hot && G[sp.hot]) { G[sp.hot].shape.setAttribute('stroke','#FFB020'); G[sp.hot].shape.setAttribute('stroke-width',3); const n = N[sp.hot]; const t = S('text', {x:n.x+n.w/2,y:n.y+n.h+18,'text-anchor':'middle',class:'small',style:'fill:#FFB020'}, G[sp.hot]); t.textContent = 'перегружена'; }
+    A({ targets:$$('.ghost', svg), opacity:[0,.5], duration:600, easing:'easeOutQuad' });
+  }
+  function send(){
+    const N = sp.nodes; const t = sp.targets[Math.floor(Math.random()*sp.targets.length)]; let path = sp.route(t, st); const stop = sp.failAt(t, st); let fails = false;
+    if (stop) { path = path.slice(0, path.indexOf(stop)+1); fails = true; }
+    const pts = path.map(id => ctr(N[id])); const p = S('circle', {cx:pts[0].x, cy:pts[0].y, r:6, fill:'#3FD0A4'}, pk);
+    if (!HAS()) { setTimeout(() => p.remove(), 300); return; }
+    anime({ targets:p, keyframes:pts.slice(1).map(q => ({cx:q.x, cy:q.y})), duration:320*(pts.length-1), easing:'easeInOutSine', complete:() => {
+      if (fails) { p.setAttribute('fill','#FF5D6C'); anime({ targets:p, r:[6,16], opacity:[1,0], duration:500, easing:'easeOutQuad', complete:() => p.remove() }); if (G[stop]) anime({ targets:G[stop].shape, strokeWidth:[5,1.5], duration:500, easing:'easeOutQuad' }); }
+      else { const back = pts.slice(0,-1).reverse(); p.setAttribute('fill','#5AA9FF'); anime({ targets:p, keyframes:back.map(q => ({cx:q.x, cy:q.y})), duration:220*back.length, easing:'easeInOutSine', complete:() => p.remove() }); } } });
+  }
+  draw();
+  return { st, draw, send, shake(){ A({ targets:sp.crash.map(id => G[id] && G[id].shape).filter(Boolean), translateX:[0,-5,5,-3,3,0], duration:500, easing:'easeInOutSine' }); } };
+}
+function labCards(host){
+  host.innerHTML = ''; const inst = {};
+  ['A','B','C'].forEach(k => { const c = document.createElement('div'); c.className = 'archcard';
+    c.innerHTML = `<h3><span class="nm">${k}</span><span class="real" data-real="${k}"></span></h3><svg viewBox="0 0 460 300" role="img" aria-label="Система ${k}"></svg><div class="outcome"></div>`;
+    host.appendChild(c); inst[k] = Arch($('svg', c), k); inst[k].card = c; });
+  return inst;
+}
+function showNames(){ $$('[data-real]').forEach(el => el.textContent = ST.named ? '· ' + SPEC[el.dataset.real].real : ''); }
+
+const free = labCards($('[data-lab="free"]'));
+let freeT = null;
+$('#freeTraffic').onclick = () => { const on = !freeT; $('#freeTraffic').textContent = on ? 'Остановить' : 'Пустить запросы во все три'; $('#freeTraffic').classList.toggle('on', on);
+  if (on) { const f = () => ['A','B','C'].forEach(k => free[k].send()); f(); freeT = setInterval(() => { if (cur === 2 && !document.hidden) f(); }, 900); } else { clearInterval(freeT); freeT = null; } };
+
+/* experiments */
+const EXPS = {
+  fail:{ n:1, concept:'D1', title:'В модуле «Оплата» ошибка: он съел всю память и упал. Что перестанет работать?',
+    opts:['Всё: и заказы, и доставка','Только оплата','Ничего не заметят'], truth:{A:0,B:0,C:1},
+    facts:{A:'Падает всё: модуль оплаты живёт в одном процессе с остальными', B:'Падает всё: вся логика — в одном сервере', C:'Падает только оплата: заказы и доставка работают'},
+    ask:'Почему в одной системе сбой «Оплаты» остановил всё, а в другой — нет? От чего это зависит?', key:'c_fail',
+    teach:['Где проходит граница процесса в каждой системе?','Что общего у модулей внутри пунктирной рамки A?','Как защитить A, не превращая её в C?'] },
+  load:{ n:2, concept:'D2', title:'Пришла реклама: нагрузка на заказы выросла в 10 раз. Что придётся копировать, чтобы выдержать?',
+    opts:['Всё приложение целиком','Логику — но упрёмся в базу','Только нагруженную часть'], truth:{A:0,B:1,C:2},
+    facts:{A:'Копируем всё приложение ×3 за балансировщиком — даже оплату и доставку', B:'Копируем сервер ×3, но единственная база перегружена', C:'Копируем только «Заказы» ×3'},
+    ask:'Чем отличается масштабирование в A, B и C? Что мешает B справиться с нагрузкой?', key:'c_load',
+    teach:['Можно ли вообще масштабировать A? Как именно?','Почему в B копии сервера не решили проблему до конца?','Какая система тратит меньше ресурсов на ту же нагрузку?'] },
+  time:{ n:3, concept:'D3', title:'Команда из 4 разработчиков, срок — 3 месяца. Успеет ли она выпустить первую версию?',
+    opts:['Успеет','Не успеет'], truth:{A:0,B:0,C:1},
+    facts:{A:'≈ 2,5 месяца: один проект, одна сборка', B:'≈ 3 месяца: успевает впритык', C:'≈ 5,5 месяца: половина времени уходит на инфраструктуру'},
+    ask:'Почему C, самая «гибкая» система, не успела к сроку? Во что обходится её гибкость?', key:'c_time',
+    teach:['Откуда взялась работа, которой нет в A?','При каком размере команды эта инфраструктура окупится?','Вспомните эксперименты 1 и 2: за что именно мы платим в C?'] },
+  teams:{ n:4, concept:'D4', title:'Компания выросла: теперь 3 команды по 5 человек. Как часто команды будут мешать друг другу?',
+    opts:['Часто','Редко'], truth:{A:0,B:0,C:1},
+    facts:{A:'Часто: общий код, конфликты слияния, общий выпуск раз в 2 недели', B:'Часто: все три команды меняют один сервер', C:'Редко: у каждой команды свой сервис и свой выпуск'},
+    ask:'Как связаны структура команд и структура системы? Что было раньше: команды или сервисы?', key:'c_teams',
+    teach:['Если у вас одна команда из 4 человек, какая система получится «сама собой»?','Что будет, если 3 команды делят один сервис в C?','Можно ли сначала поменять команды, чтобы поменять архитектуру?'] },
+};
+const visual = {};
+$$('[data-exp]').forEach(sc => {
+  const id = sc.dataset.exp, X = EXPS[id];
+  if (PRINT) { ST.pred[id] = { ...X.truth }; ST.done[id] = true; ST.found[X.concept] = true; }
+  sc.innerHTML = `
+    <div class="row"><span class="tag anim">Эксперимент ${X.n} из 4</span></div>
+    <h2 class="anim">${X.title}</h2>
+    <div class="panel anim"><h3>Шаг 1 · Ваш прогноз для каждой системы</h3><div class="preds"></div></div>
+    <div class="row anim"><button class="btn primary run" type="button" disabled>Шаг 2 · Запустить эксперимент</button><span class="muted runhint" style="font-size:14px"></span></div>
+    <div class="vis anim"></div>
+    <div class="panel conclude" hidden><h3>Шаг 3 · Ваш вывод</h3><label for="cx_${id}">${X.ask}</label><textarea id="cx_${id}" data-save="${X.key}"></textarea>
+      <div class="row"><button class="btn primary" data-unlock="${X.concept}" data-src="cx_${id}" type="button" disabled>Шаг 4 · Открыть понятие</button><button class="link" data-unlock="${X.concept}" data-force type="button">Преподавателю: открыть без вывода</button></div></div>
+    <div data-concept="${X.concept}"></div>
+    <details class="teach"><summary>Наводящие вопросы преподавателю (без ответов)</summary><ul>${X.teach.map(t => `<li>${t}</li>`).join('')}</ul></details>`;
+  const preds = $('.preds', sc); ST.pred[id] = ST.pred[id] || {};
+  ['A','B','C'].forEach(k => { const r = document.createElement('div'); r.className = 'pred'; r.dataset.k = k;
+    r.innerHTML = `<span class="nm">${k}</span><div class="seg">${X.opts.map((o, i) => `<button type="button" data-i="${i}">${o}</button>`).join('')}</div><span class="mk"></span>`;
+    $$('.seg button', r).forEach(b => b.onclick = () => { if (ST.done[id]) return; ST.pred[id][k] = +b.dataset.i; save(); paintPreds(); });
+    preds.appendChild(r); });
+  function paintPreds(){ const done = !!ST.done[id];
+    $$('.pred', preds).forEach(r => { const k = r.dataset.k, p = ST.pred[id][k];
+      $('.seg', r).classList.toggle('locked', done);
+      $$('.seg button', r).forEach(b => { const i = +b.dataset.i; b.classList.toggle('sel', p === i); b.classList.toggle('truth', done && i === X.truth[k] && p !== i); });
+      const mk = $('.mk', r); mk.textContent = done ? (p === X.truth[k] ? '✓' : '✗') : ''; mk.className = 'mk ' + (done ? (p === X.truth[k] ? 'y' : 'n') : ''); });
+    const ready = ['A','B','C'].every(k => ST.pred[id][k] !== undefined);
+    $('.run', sc).disabled = !ready || done;
+    $('.runhint', sc).textContent = done ? 'Эксперимент проведён. ✓ — прогноз сбылся, зелёная рамка — что было на самом деле.' : ready ? 'Прогноз записан. Запускайте.' : 'Сначала сделайте прогноз для A, B и C.'; }
+  paintPreds();
+  const vis = $('.vis', sc);
+  if (id === 'fail' || id === 'load') { const lg = document.createElement('div'); lg.className = 'labgrid'; vis.appendChild(lg); visual[id] = labCards(lg); }
+  if (id === 'time') vis.innerHTML = `<div class="panel"><div class="gantt" id="gantt"></div><p class="muted" style="font-size:13px;margin-top:14px">Учебная модель: команда из 4 человек, одинаковый набор функций. Красная линия — срок 3 месяца.</p></div>`;
+  if (id === 'teams') vis.innerHTML = `<div class="labgrid" id="teamsVis"></div>`;
+  async function run(animate){
+    ST.done[id] = true; save(); paintPreds(); $('.conclude', sc).hidden = false; syncUnlockBtns();
+    if (id === 'fail' || id === 'load') { const L = visual[id];
+      ['A','B','C'].forEach(k => { L[k].st[id] = true; L[k].draw(); if (id === 'fail' && animate) L[k].shake(); $('.outcome', L[k].card).innerHTML = `<b>${k}:</b> ${X.facts[k]}`; });
+      if (animate && HAS()) for (let i = 0; i < 6; i++) { ['A','B','C'].forEach(k => L[k].send()); await wait(380); } }
+    if (id === 'time') runGantt(animate);
+    if (id === 'teams') runTeams(animate);
+    if (animate) A({ targets:$('.conclude', sc), opacity:[0,1], translateY:[12,0], duration:500, delay:600, easing:'easeOutCubic' });
+  }
+  $('.run', sc).onclick = () => run(true);
+  sc._restore = () => { if (ST.done[id]) run(false); if (ST.text[X.key]) $('textarea', sc).value = ST.text[X.key]; if (ST.found[X.concept]) unlock(X.concept, false); };
+  onEnter[scenes.indexOf(sc)] = () => { if (ST.done[id] && (id === 'fail' || id === 'load') && HAS()) (async () => { for (let i = 0; i < 3; i++) { ['A','B','C'].forEach(k => visual[id][k].send()); await wait(420); } })(); };
+});
+
+/* gantt */
+(function(){ $('#gantt').innerHTML = `<div class="months"><span></span><div>${[0,1,2,3,4,5,6].map(m => `<span class="${m===3?'ddl':''}">${m}${m===3?' срок':''}</span>`).join('')}</div><span>мес.</span></div>` +
+  [['A',2.5,['Модули','Интерфейс','База']],['B',3,['API сервера','Клиенты','База']],['C',5.5,['3 сервиса','API-шлюз','CI/CD ×3','Контейнеры','Мониторинг','Трассировка','Очередь']]].map(([k, m, ch]) =>
+  `<div class="grow" data-k="${k}" data-m="${m}"><span class="nm">${k}</span><div><div class="track"><i></i><span class="dl"></span></div><div class="chips">${ch.map(c => `<span class="chip">${c}</span>`).join('')}</div></div><span class="mon">—</span></div>`).join(''); })();
+function runGantt(animate){ $$('#gantt .grow').forEach((r, i) => { const m = +r.dataset.m, late = m > 3; const bar = $('.track>i', r);
+  const fin = () => { bar.style.width = (m/6*100)+'%'; bar.style.background = late ? 'var(--bad)' : 'var(--ok)'; $('.mon', r).textContent = String(m).replace('.', ',') + ' мес'; $('.mon', r).style.color = late ? 'var(--bad)' : 'var(--ok)'; };
+  if (!animate || !HAS()) { fin(); return; }
+  bar.style.background = 'var(--blue)'; const o = {v:0};
+  anime({ targets:o, v:m, duration:600*m, delay:i*150, easing:'linear', update:() => { bar.style.width = (o.v/6*100)+'%'; $('.mon', r).textContent = o.v.toFixed(1).replace('.', ',') + ' мес'; }, complete:fin });
+  anime({ targets:$$('.chip', r), opacity:[0,1], scale:[.6,1], delay:stg(260, {start:i*150}), duration:400, easing:'easeOutBack' }); }); }
+
+/* teams */
+const TEAMS = { A:{kind:'one', conf:12, rel:'раз в 2 недели'}, B:{kind:'one', conf:9, rel:'раз в 2 недели'}, C:{kind:'three', conf:2, rel:'когда готово'} };
+(function(){ const host = $('#teamsVis'); const cols = ['#FFB020','#A98BFF','#3FD0A4'];
+  ['A','B','C'].forEach(k => { const c = document.createElement('div'); c.className = 'archcard'; c.dataset.k = k;
+    c.innerHTML = `<h3><span class="nm">${k}</span><span class="real" data-real="${k}"></span></h3><svg class="teamsvg" viewBox="0 0 300 190" aria-label="Три команды работают с системой ${k}"></svg><div class="kpi"><div>Конфликтов слияния в неделю<b class="kc">—</b></div><div>Выпуск новой версии<b class="kr" style="font-size:15px">—</b></div></div><div class="outcome"></div>`;
+    host.appendChild(c); const sv = $('svg', c);
+    cols.forEach((col, t) => { [0,1,2].forEach(j => S('circle', {cx:20+j*14, cy:38+t*58, r:6, fill:col}, sv)); const tt = S('text', {x:20, y:22+t*58, class:'small'}, sv); tt.textContent = 'команда ' + (t+1); });
+    if (TEAMS[k].kind === 'one') { S('rect', {x:170,y:40,width:118,height:110,rx:10,fill:'#1F3462',stroke:'#3B5A92','stroke-width':1.5,class:'tgt'}, sv); const t = S('text', {x:229,y:100,'text-anchor':'middle'}, sv); t.textContent = k === 'A' ? 'Приложение' : 'Сервер'; }
+    else [['Заказы',10],['Оплата',68],['Доставка',126]].forEach(([l, y]) => { S('rect', {x:170,y,width:118,height:50,rx:10,fill:'#1F3462',stroke:'#3B5A92','stroke-width':1.5,class:'tgt'}, sv); const t = S('text', {x:229,y:y+30,'text-anchor':'middle'}, sv); t.textContent = l; }); });
+})();
+function runTeams(animate){ ['A','B','C'].forEach(k => { const c = $(`#teamsVis [data-k="${k}"]`), T = TEAMS[k], sv = $('svg', c);
+  $('.outcome', c).innerHTML = `<b>${k}:</b> ${EXPS.teams.facts[k]}`; $('.kr', c).textContent = T.rel;
+  const kc = $('.kc', c); if (!animate || !HAS()) { kc.textContent = T.conf; return; }
+  const o = {v:0}; anime({ targets:o, v:T.conf, round:1, duration:2400, easing:'easeOutQuad', update:() => kc.textContent = o.v });
+  for (let n = 0; n < 9; n++) { const t = n % 3; const p = S('circle', {cx:60, cy:38+t*58, r:5, fill:['#FFB020','#A98BFF','#3FD0A4'][t]}, sv);
+    const ty = T.kind === 'one' ? 95 : [35,93,151][t];
+    anime({ targets:p, cx:[60,200], cy:[38+t*58, ty], duration:700, delay:n*260, easing:'easeInOutSine', complete:() => {
+      if (T.kind === 'one') { anime({ targets:$$('.tgt', sv)[0], stroke:['#FF5D6C','#3B5A92'], strokeWidth:[4,1.5], duration:500, easing:'easeOutQuad' }); p.setAttribute('fill','#FF5D6C'); }
+      anime({ targets:p, r:[5,12], opacity:[1,0], duration:450, easing:'easeOutQuad', complete:() => p.remove() }); } }); } }); }
+
+/* summary + naming */
+const EXP_ORDER = ['fail','load','time','teams'];
+const EXP_LABEL = { fail:'1 · Сбой «Оплаты»', load:'2 · Нагрузка ×10', time:'3 · Срок 3 месяца', teams:'4 · Три команды' };
+function renderObs(){
+  let hit = 0, tot = 0;
+  const rows = EXP_ORDER.map(id => { const X = EXPS[id]; return `<tr><td>${EXP_LABEL[id]}</td>${['A','B','C'].map(k => {
+      if (!ST.done[id]) return '<td class="muted">эксперимент не проведён</td>'; const ok = ST.pred[id][k] === X.truth[k]; hit += ok; tot++;
+      return `<td><span class="${ok?'ok':'no'}">${ok?'✓':'✗'}</span> ${X.facts[k]}</td>`; }).join('')}</tr>`; }).join('');
+  $('#obsTable').innerHTML = `<thead><tr><th>Эксперимент</th><th>A</th><th>B</th><th>C</th></tr></thead><tbody>${rows}</tbody>`;
+  $('#accText').textContent = tot ? `Ваши прогнозы сбылись в ${hit} из ${tot} случаев. ✗ — там, где интуиция подвела: это самые ценные наблюдения.` : 'Сначала проведите эксперименты 1–4.';
+  A({ targets:$$('#obsTable tbody tr'), opacity:[0,1], translateX:[-14,0], delay:stg(90), duration:450, easing:'easeOutCubic' });
+}
+const NAMES = ['Монолит','Трёхуровневая','Микросервисы'];
+['A','B','C'].forEach(k => $('#nameRow').insertAdjacentHTML('beforeend', `<div><label for="nm${k}">Система ${k} — это…</label><select id="nm${k}"><option value="">выберите</option>${NAMES.map(n => `<option>${n}</option>`).join('')}</select></div>`));
+$('#nameCheck').onclick = () => { let ok = 0; ['A','B','C'].forEach(k => { const s = $('#nm'+k), r = s.value === SPEC[k].real; ok += r; s.style.borderColor = s.value ? (r ? 'var(--ok)' : 'var(--bad)') : 'var(--line)'; });
+  if (ok === 3) { $('#nameRes').textContent = 'Все три верно.'; ST.named = true; save(); showNames(); unlock('D5'); calc(0); calc(1); }
+  else { $('#nameRes').textContent = `Верно ${ok} из 3. Подсказка: перечитайте строки экспериментов 1 и 2 в таблице.`; A({ targets:'#nameRow', translateX:[0,-6,6,-4,4,0], duration:400, easing:'easeInOutSine' }); } };
+onEnter[idx('Сводка и названия')] = renderObs;
+
+/* matrix */
+const CRIT = ['Скорость старта (эксп. 3)','Низкая стоимость (эксп. 3)','Изоляция отказов (эксп. 1)','Масштабируемость (эксп. 2)','Независимость команд (эксп. 4)'];
+const SC = { A:[5,5,1,2,1], B:[4,4,1,3,2], C:[1,1,5,5,5] };
+const ERAS = ['Сейчас: 4 разработчика, 3 месяца, денег мало','Через 3 года: 10 млн пользователей, 6 команд'];
+$('#scoreTbl').innerHTML = `<tr><th>Критерий</th><th>A</th><th>B</th><th>C</th></tr>` + CRIT.map((c, i) => `<tr><td>${c}</td><td>${SC.A[i]}</td><td>${SC.B[i]}</td><td>${SC.C[i]}</td></tr>`).join('');
+const lanes = [{}, {}];
+$$('.era').forEach(host => { const e = +host.dataset.era;
+  host.innerHTML = `<h3>${ERAS[e]}</h3>` + CRIT.map((c, i) => `<div class="wrow"><label for="w${e}_${i}" style="margin:0;color:var(--fg);font-size:14px">${c}</label><input type="range" id="w${e}_${i}" min="0" max="50" value="${ST.weights[e][i]}"><output></output></div>`).join('') + `<div class="race"></div><p class="muted winner" style="font-size:14px"></p>`;
+  $$('input', host).forEach((r, i) => r.oninput = () => { ST.weights[e][i] = +r.value; save(); calc(e); });
+  const race = $('.race', host); ['A','B','C'].forEach(k => { const d = document.createElement('div'); d.className = 'lane'; d.innerHTML = `<span class="lnm">${k}</span><span class="bar"><i></i></span><span class="score">0,00</span>`; race.appendChild(d); lanes[e][k] = { el:d, v:{v:0} }; });
+});
+function calc(e){ const W = ST.weights[e]; const sum = W.reduce((a,b)=>a+b,0) || 1; const host = $(`.era[data-era="${e}"]`);
+  $$('output', host).forEach((o, i) => o.textContent = Math.round(W[i]/sum*100) + '%');
+  const tot = Object.fromEntries(['A','B','C'].map(k => [k, SC[k].reduce((a, v, i) => a + v*W[i]/sum, 0)]));
+  const order = ['A','B','C'].sort((a, b) => tot[b] - tot[a]);
+  order.forEach((k, r) => { const L = lanes[e][k]; L.el.classList.toggle('win', r === 0); $('.lnm', L.el).textContent = ST.named ? `${k} · ${SPEC[k].real}` : k;
+    A({ targets:L.el, translateY:r*50, duration:600, easing:'easeOutQuart' }); A({ targets:$('.bar>i', L.el), width:(tot[k]/5*100)+'%', duration:600, easing:'easeOutQuart' });
+    if (HAS()) anime({ targets:L.v, v:tot[k], duration:600, easing:'easeOutQuart', update:() => $('.score', L.el).textContent = L.v.v.toFixed(2).replace('.', ',') });
+    else { L.el.style.transform = `translateY(${r*50}px)`; $('.score', L.el).textContent = tot[k].toFixed(2).replace('.', ','); } });
+  const even = W.every(w => w === W[0]);
+  $('.winner', host).textContent = even ? 'Веса пока равные. Решите, что важнее в этой ситуации.' : (tot[order[0]] - tot[order[1]] < .15 ? 'Почти ничья — решайте по рискам.' : `Побеждает ${order[0]}${ST.named ? ' (' + SPEC[order[0]].real + ')' : ''}.`); }
+calc(0); calc(1);
+onEnter[idx('Как выбирать')] = () => { calc(0); calc(1); };
+
+function makeTimer(host, phases){
+  const total = phases.reduce((a,p)=>a+p[1],0); let left = total, run = null;
+  host.innerHTML = `<svg class="ring" viewBox="0 0 120 120"><circle class="trk" cx="60" cy="60" r="50"/><circle class="val" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="0"/><text x="60" y="67" text-anchor="middle"></text></svg><div style="display:flex;flex-direction:column;gap:8px"><div class="phase"></div><div class="row"><button class="btn primary" type="button">Старт</button><button class="btn" type="button">Сброс</button></div></div>`;
+  const [bS, bR] = $$('button', host), txt = $('text', host), arc = $('.val', host), ph = $('.phase', host); const fmt = s => Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+  function upd(){ txt.textContent = fmt(left); arc.style.strokeDashoffset = 314.16*(1 - left/total); let el = total - left, acc = 0, idx = 0; for (; idx < phases.length; idx++) { acc += phases[idx][1]; if (el < acc) break; }
+    ph.innerHTML = phases.map((p, i) => i === Math.min(idx, phases.length-1) ? `<b>▸ ${p[0]} · ${fmt(p[1])}</b>` : `${p[0]} · ${fmt(p[1])}`).join('<br>'); arc.style.stroke = left <= 30 ? 'var(--bad)' : 'var(--accent)'; }
+  bS.onclick = () => { if (run) { clearInterval(run); run = null; bS.textContent = 'Продолжить'; return; } bS.textContent = 'Пауза'; run = setInterval(() => { left = Math.max(0, left-1); upd(); if (!left) { clearInterval(run); run = null; bS.textContent = 'Старт'; A({ targets:$('.ring', host), scale:[1,1.12,1], duration:600, loop:3, easing:'easeInOutSine' }); } }, 1000); };
+  bR.onclick = () => { clearInterval(run); run = null; left = total; bS.textContent = 'Старт'; upd(); }; upd(); }
+
+/* ================= teams ================= */
+const teamNames = () => (ST.teams && ST.teams.length ? ST.teams : [[],[],[],[],[]]).map((_, i) => 'Команда ' + (i+1));
+function renderTeams(animate){
+  const g = $('#teamGrid'); g.innerHTML = '';
+  (ST.teams || []).forEach((m, i) => { const d = document.createElement('div'); d.className = 'team'; d.innerHTML = `<h3>Команда ${i+1}</h3>` + m.map(x => `<span class="member">${esc(x)}</span>`).join(''); g.appendChild(d); });
+  if (animate) A({ targets:$$('.member', g), opacity:[0,1], translateY:[-30,0], scale:[.6,1], rotate:() => [anime.random(-25,25), 0], delay:stg(35), duration:600, easing:'easeOutBack' });
+  refreshTeamUIs();
+}
+$('#tMake').onclick = () => {
+  const names = $('#tNames').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const list = names.length ? names : Array.from({length: Math.max(2, Math.min(60, +$('#tCount').value || 25))}, (_, i) => 'Студент ' + (i+1));
+  const k = Math.max(2, Math.min(8, +$('#tTeams').value || 5));
+  for (let i = list.length - 1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [list[i], list[j]] = [list[j], list[i]]; }
+  ST.teams = Array.from({length:k}, () => []); list.forEach((n, i) => ST.teams[i % k].push(n));
+  ST.genre = {}; ST.stories = {}; ST.votes = []; save(); renderTeams(true); $('#tMake').textContent = 'Перемешать заново';
+};
+if (ST.teams && ST.teams.length) $('#tMake').textContent = 'Перемешать заново';
+
+/* ================= mission: keywords, theses, genres ================= */
+const KW = [['Монолит',/монолит/i],['Трёхуровневая архитектура',/(тр[её]х|много)уровнев/i],['Микросервисы',/микросервис/i],['Масштабирование',/масштабир/i],['Балансировщик',/балансир/i],['Изоляция отказов',/изоляц\S*\s+отказ|отказоустойчив/i],['Узкое место',/узк\S*\s+мест/i],['Закон Конвея',/конве[яйю]/i],['Атрибуты качества',/атрибут\S*\s+качеств|критери/i],['API-шлюз',/шлюз/i],['База данных',/баз\S*\s+данн|(^|[^а-яё])бд([^а-яё]|$)/i],['Архитектурное решение (ADR)',/(^|[^a-z])adr([^a-z]|$)|архитектурн\S*\s+решени/i]];
+const THESES = ['Сбой одной части не обязательно роняет всю систему — это зависит от архитектуры','Систему масштабируют копиями; копировать можно всё целиком или только нагруженную часть','Сложная архитектура стоит времени и денег — маленькой команде она может сорвать срок','Устройство команд влияет на устройство системы','Лучшей архитектуры нет: выбор зависит от условий и приоритетов'];
+const GENRES = ['Детектив','Сказка','Научная фантастика','Новостной репортаж','Комикс из 6–8 кадров','Дневник разработчика','Сценарий 1-минутного видео','Плакат-инфографика','Рэп или стихотворение','Хоррор про «упавший сервер»'];
+$('#kwList').innerHTML = KW.map(([k]) => `<span class="kw">${k}</span>`).join('');
+$('#thesesList').innerHTML = THESES.map(t => `<li>${t}</li>`).join('');
+function renderGenres(){
+  const g = $('#genreGrid'); g.innerHTML = '';
+  teamNames().forEach((nm, i) => { const has = ST.genre && ST.genre[i] !== undefined;
+    const d = document.createElement('div'); d.className = 'genre' + (has ? ' done' : '');
+    d.innerHTML = `<span class="eyebrow">${nm}</span><div class="gname">${has ? GENRES[ST.genre[i]] : '?'}</div><button class="btn${has ? '' : ' primary'}" type="button">${has ? 'Перетянуть' : 'Вытянуть жанр'}</button>`;
+    $('button', d).onclick = () => spinGenre(i, d); g.appendChild(d); });
+}
+function spinGenre(i, card){
+  ST.genre = ST.genre || {}; const taken = new Set(Object.entries(ST.genre).filter(([k]) => +k !== i).map(([, v]) => v));
+  const free = GENRES.map((_, j) => j).filter(j => !taken.has(j)); const pick = free[Math.floor(Math.random()*free.length)];
+  const el = $('.gname', card), btn = $('button', card); btn.disabled = true;
+  const done = () => { ST.genre[i] = pick; save(); card.classList.add('done'); el.textContent = GENRES[pick]; btn.disabled = false; btn.textContent = 'Перетянуть'; btn.classList.remove('primary'); A({ targets:el, scale:[1.3,1], duration:600, easing:'easeOutElastic(1,.6)' }); };
+  if (!HAS()) { done(); return; }
+  const o = {v:0}; anime({ targets:o, v:24 + pick, duration:1500, easing:'easeOutCubic', update:() => el.textContent = GENRES[Math.floor(o.v) % GENRES.length], complete:done });
+}
+
+/* ================= workshop: keyword checker ================= */
+let kwTeam = 0;
+function renderKwTabs(){ const t = $('#kwTeams'); t.innerHTML = '';
+  teamNames().forEach((nm, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (i === kwTeam ? ' on' : ''); b.textContent = nm; b.onclick = () => { kwTeam = i; renderKwTabs(); $('#kwText').value = (ST.stories || {})[i] || ''; checkKw(false); syncKwAi(); }; t.appendChild(b); }); }
+let lastHits = new Set();
+function checkKw(animate){
+  const txt = $('#kwText').value; const hits = new Set(KW.filter(([, re]) => re.test(txt)).map(([k]) => k));
+  $('#kwFound').innerHTML = KW.map(([k]) => `<span class="kw${hits.has(k) ? ' hit' : ''}" data-k="${k}">${hits.has(k) ? '✓ ' : ''}${k}</span>`).join('');
+  const n = hits.size, arc = $('#kwRing .val'); $('#kwRing text').textContent = n + '/' + KW.length;
+  arc.style.stroke = n === KW.length ? 'var(--ok)' : 'var(--accent)';
+  A({ targets:arc, strokeDashoffset:314.16*(1 - n/KW.length), duration:500, easing:'easeOutCubic' });
+  $('#kwNote').textContent = n === KW.length ? 'Все термины на месте. Теперь проверьте ключевые положения.' : `Не хватает: ${KW.filter(([k]) => !hits.has(k)).map(([k]) => k).join(', ')}`;
+  if (animate) [...hits].filter(k => !lastHits.has(k)).forEach(k => A({ targets:$(`#kwFound [data-k="${k}"]`), scale:[1.4,1], duration:500, easing:'easeOutBack' }));
+  lastHits = hits;
+}
+$('#kwText').addEventListener('input', () => { ST.stories = ST.stories || {}; ST.stories[kwTeam] = $('#kwText').value; save(); checkKw(true); });
+makeTimer($('#workTimer'), [['Обсуждение в команде',420],['Создание продукта',900],['Проверка терминов',180]]);
+
+/* ================= defense ================= */
+let defTeam = 0;
+function renderDef(){ const t = $('#defTeams'); t.innerHTML = '';
+  teamNames().forEach((nm, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (i === defTeam ? ' on' : ''); b.textContent = nm; b.onclick = () => { defTeam = i; renderDef(); A({ targets:'#defInfo', opacity:[0,1], translateX:[20,0], duration:400, easing:'easeOutCubic' }); }; t.appendChild(b); });
+  const m = (ST.teams || [])[defTeam] || []; const g = ST.genre && ST.genre[defTeam] !== undefined ? GENRES[ST.genre[defTeam]] : 'жанр не выбран';
+  $('#defInfo').innerHTML = `<span class="eyebrow">${teamNames()[defTeam]} · ${g}</span><p class="muted" style="font-size:14px;margin-top:4px" data-aiuse="${defTeam}"></p><h3 style="margin-top:6px">Состав</h3><div class="chips">${m.length ? m.map(x => `<span class="chip">${esc(x)}</span>`).join('') : '<span class="muted">Команды ещё не сформированы</span>'}</div><h3 style="margin-top:14px">Слушатели проверяют</h3><ol style="margin:0;padding-left:20px;font-size:14px">${THESES.map(t => `<li>${t}</li>`).join('')}</ol>`;
+  makeTimer($('#defTimer'), [['Выступление',180],['Вопросы от других команд',60]]); if (typeof refreshAiBadges === 'function' && ST.ai) refreshAiBadges(); }
+
+/* ================= peer voting ================= */
+let vFrom = null;
+function renderVote(){
+  const names = teamNames(); ST.votes = ST.votes || [];
+  const f = $('#vFrom'), t = $('#vTo'); f.innerHTML = ''; t.innerHTML = '';
+  names.forEach((nm, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (vFrom === i ? ' on' : ''); b.textContent = nm; b.onclick = () => { vFrom = i; renderVote(); }; f.appendChild(b);
+    const c = document.createElement('button'); c.type = 'button'; c.className = 'btn primary'; c.textContent = nm; c.disabled = vFrom === null || vFrom === i;
+    c.onclick = () => { ST.votes.push([vFrom, i]); save(); $('#vMsg').textContent = `Голос принят: ${names[vFrom]} → ${nm}. Следующий студент.`; vFrom = null; renderVote(); bump(i); }; t.appendChild(c); });
+  const cnt = names.map((_, i) => ST.votes.filter(v => v[1] === i).length), mx = Math.max(1, ...cnt);
+  if ($('#vBars').children.length !== names.length) $('#vBars').innerHTML = names.map(nm => `<div class="vrow"><span>${nm}</span><span class="bar"><i></i></span><b>0</b></div>`).join('');
+  $$('#vBars .vrow').forEach((r, i) => { $('b', r).textContent = cnt[i]; A({ targets:$('.bar>i', r), width:(cnt[i]/mx*100)+'%', duration:500, easing:'easeOutCubic' }); });
+  $('#vTotal').textContent = 'Всего голосов: ' + ST.votes.length;
+}
+function bump(i){ A({ targets:$$('#vBars .vrow')[i], scale:[1.06,1], duration:400, easing:'easeOutBack' }); }
+$('#vUndo').onclick = () => { if (ST.votes && ST.votes.length) { ST.votes.pop(); save(); $('#vMsg').textContent = 'Последний голос отменён.'; renderVote(); } };
+$('#vReset').onclick = () => { const b = $('#vReset'); if (b.dataset.arm !== '1') { b.dataset.arm = '1'; b.textContent = 'Нажмите ещё раз, чтобы обнулить'; return; } b.dataset.arm = ''; b.textContent = 'Обнулить голоса'; ST.votes = []; save(); $('#vResult').innerHTML = ''; renderVote(); };
+$('#vWin').onclick = () => {
+  const names = teamNames(); const cnt = names.map((_, i) => (ST.votes || []).filter(v => v[1] === i).length);
+  if (!cnt.some(Boolean)) { $('#vMsg').textContent = 'Пока нет ни одного голоса.'; return; }
+  const order = names.map((_, i) => i).sort((a, b) => cnt[b] - cnt[a]); const top = cnt[order[0]]; const winners = order.filter(i => cnt[i] === top);
+  const SCORE = [98, 95, 93, 91]; let rank = 0, prev = null;
+  const scores = order.map((i, k) => { if (cnt[i] !== prev) { rank = k; prev = cnt[i]; } return [i, SCORE[Math.min(rank, SCORE.length-1)]]; });
+  $('#vResult').innerHTML = `<div class="winner"><span class="eyebrow">Сегодня побеждает</span><div class="big">${winners.map(i => names[i]).join(' и ')}</div><p class="muted">${top} голосов. Предлагаемые баллы — никого не занижаем:</p><div class="scores">${scores.map(([i, s]) => `<div class="score">${names[i]}<b>${s}</b></div>`).join('')}</div></div>`;
+  const w = $('#vResult .winner'); A({ targets:w, opacity:[0,1], scale:[.9,1], duration:700, easing:'easeOutBack' });
+  A({ targets:$$('.score', w), opacity:[0,1], translateY:[14,0], delay:stg(90, {start:400}), duration:450, easing:'easeOutCubic' });
+  if (HAS()) for (let k = 0; k < 40; k++) { const c = document.createElement('i'); c.style.cssText = `position:absolute;left:50%;top:30%;width:8px;height:8px;border-radius:2px;background:${['#FFB020','#3FD0A4','#5AA9FF','#A98BFF','#FF5D6C'][k%5]};pointer-events:none`; w.appendChild(c);
+    anime({ targets:c, translateX:anime.random(-420,420), translateY:[0, anime.random(80,260)], rotate:anime.random(-360,360), opacity:[1,0], duration:anime.random(1200,2000), easing:'easeOutQuad', complete:() => c.remove() }); }
+};
+function refreshTeamUIs(){ renderGenres(); renderKwTabs(); renderDef(); vFrom = null; $('#vBars').innerHTML = ''; renderVote(); if (ST.ai) { renderAi(); refreshAiBadges(); } }
+if ($('#wsKw')) { $('#wsKw').innerHTML = KW.map(([k]) => `<span>${k}</span>`).join(''); $('#wsTh').innerHTML = THESES.map(t => `<span>${t}</span>`).join(''); }
+/* ================= AI consultant (with limits) ================= */
+const AI_LIMIT = 3;
+ST.ai = ST.ai || {};
+const aiT = i => (ST.ai[i] = ST.ai[i] || { used:0, viol:0, review:false, log:[] });
+let aiTeam = 0, aiCtl = null, aiAvail = false;
+const FORBID = /(напиши|написать|сочини|сочинить|придумай|сгенерируй|составь|создай|перепиши|дополни|продолжи)[^.?!]{0,60}(рассказ|истори|текст|стих|рэп|сценари|сказк|комикс|репортаж|эссе|сочинени|диалог|абзац|концовк)|(^|\s)(write|generate)\s/i;
+function aiUseText(i){ const t = aiT(i); return `ИИ: вопросов ${t.used}/${AI_LIMIT} · проверка фактов ${t.review ? 'использована' : 'не использована'} · нарушений ${t.viol}`; }
+function renderAi(){
+  const tabs = $('#aiTeams'); tabs.innerHTML = '';
+  teamNames().forEach((nm, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (i === aiTeam ? ' on' : ''); b.textContent = nm; b.onclick = () => { aiTeam = i; renderAi(); }; tabs.appendChild(b); });
+  const t = aiT(aiTeam), left = AI_LIMIT - t.used; const q = $('#aiQuota'); q.textContent = left > 0 ? `осталось ${left} из ${AI_LIMIT}` : 'лимит исчерпан'; q.classList.toggle('out', left <= 0);
+  $('#aiAsk').disabled = !aiAvail || left <= 0 || !!aiCtl;
+  $('#aiLog').innerHTML = t.log.length ? t.log.map(e => `<div class="qa${e.v ? ' viol' : ''}"><div class="q"><b>${e.v ? 'Нарушение' : 'Вопрос'}:</b> ${esc(e.q)}</div><div>${esc(e.a)}</div></div>`).join('') : '<p class="muted">Вопросов пока нет.</p>';
+}
+function violation(q, why){ const t = aiT(aiTeam); t.viol++; t.log.unshift({ q, a: why, v:true }); save(); renderAi(); refreshAiBadges();
+  $('#aiState').textContent = 'Запрос заблокирован: ИИ не пишет текст за команду. Нарушение записано.'; A({ targets:'#aiQ', translateX:[0,-8,8,-5,5,0], duration:450, easing:'easeInOutSine' }); }
+$('#aiAsk').onclick = async () => {
+  const q = $('#aiQ').value.trim(); if (q.length < 5) { $('#aiState').textContent = 'Сформулируйте вопрос.'; return; }
+  if (FORBID.test(q)) { violation(q, 'Заблокировано правилами: просьба написать текст для работы.'); return; }
+  const sample = await samplePromise; if (!sample) return;
+  const t = aiT(aiTeam); if (t.used >= AI_LIMIT) return;
+  const prompt = `Ты — консультант на лекции по проектированию информационных систем (студенты 3 курса). Тема: монолит, трёхуровневая архитектура, микросервисы, масштабирование, балансировщик, изоляция отказов, узкое место, закон Конвея, атрибуты качества, API-шлюз, ADR.
+Строгие правила:
+1) Объясняй понятия коротко и просто, максимум 70 слов, по-русски, можно один пример из жизни.
+2) НИКОГДА не пиши за студентов текст для их творческой работы: рассказы, стихи, рэп, сценарии, диалоги, репортажи, абзацы, концовки, сюжеты, названия. Если вопрос просит об этом прямо или косвенно, верни allowed=false.
+3) Если вопрос не по теме лекции, верни allowed=false.
+4) Закончи ответ одним встречным вопросом, который заставит команду подумать самой.
+Ответь ТОЛЬКО JSON: {"allowed": true или false, "answer": "текст ответа или короткое объяснение отказа"}
+
+Вопрос команды: ${q}`;
+  aiCtl = new AbortController(); renderAi(); $('#aiStop').hidden = false; $('#aiState').textContent = 'Консультант думает…'; thinking(true);
+  try {
+    const r = await sample.json(prompt, { signal: aiCtl.signal, cache:false, modelTier:'quick' });
+    if (r && r.allowed === false) { thinking(false); aiCtl = null; violation(q, 'ИИ отказал: ' + String(r.answer || 'запрос нарушает правила.')); return; }
+    t.used++; t.log.unshift({ q, a: String((r && r.answer) || '').slice(0, 900), v:false }); save(); $('#aiQ').value = ''; $('#aiState').textContent = 'Ответ получен. Обсудите его в команде.';
+    refreshAiBadges();
+  } catch (err) {
+    const code = err && err.code; $('#aiState').textContent = { cancelled:'Остановлено — вопрос не засчитан.', not_granted:'Доступ к Claude не разрешён. Работайте с источниками.', rate_limited:'Слишком много запросов. Подождите минуту.', invalid_json:'Ответ пришёл в неожиданном формате — вопрос не засчитан, попробуйте ещё раз.', refused:'Консультант не стал отвечать — вопрос не засчитан.' }[code] || 'Не удалось получить ответ — вопрос не засчитан.';
+    if (['not_granted','sampling_disabled','not_declared'].includes(code)) aiAvail = false;
+  } finally { thinking(false); aiCtl = null; $('#aiStop').hidden = true; renderAi(); A({ targets:$('#aiLog .qa'), opacity:[0,1], translateY:[10,0], duration:450, easing:'easeOutCubic' }); }
+};
+$('#aiStop').onclick = () => aiCtl && aiCtl.abort();
+const tn = $('#thinkNet'), TP = [], TE = [];
+(function(){ [[3,60],[4,170],[4,280],[2,370]].forEach(([n, x], ci) => { for (let i = 0; i < n; i++) TP.push({x, y:12+(i+.5)*96/n, c:ci}); });
+  TP.forEach((a, i) => TP.forEach((b, j) => { if (b.c === a.c + 1) TE.push([i, j]); }));
+  TE.forEach(([i, j]) => S('line', {x1:TP[i].x,y1:TP[i].y,x2:TP[j].x,y2:TP[j].y,stroke:'#22355C','stroke-width':1.2}, tn));
+  TP.forEach(p => p.el = S('circle', {cx:p.x, cy:p.y, r:7, fill:'#16274A', stroke:'#3B5A92','stroke-width':1.5}, tn)); })();
+let thinkLoop = null;
+function thinking(on){ clearInterval(thinkLoop); if (!on || !HAS()) return;
+  thinkLoop = setInterval(() => { const [i, j] = TE[Math.floor(Math.random()*TE.length)]; const a = TP[i], b = TP[j]; const s = S('circle', {cx:a.x, cy:a.y, r:3.5, fill:'#FFB020'}, tn);
+    anime({ targets:a.el, fill:['#FFB020','#16274A'], duration:700, easing:'easeOutQuad' });
+    anime({ targets:s, cx:b.x, cy:b.y, duration:500, easing:'easeInOutSine', complete:() => { s.remove(); anime({ targets:b.el, fill:['#3FD0A4','#16274A'], r:[10,7], duration:600, easing:'easeOutQuad' }); } }); }, 90); }
+const samplePromise = (window.claude && window.claude.use && !window.__PRINT__) ? window.claude.use('sample') : Promise.resolve(null);
+samplePromise.then(s => { aiAvail = !!s; if (!s) { $('#aiState').textContent = 'ИИ-консультант работает только в онлайн-версии в Claude. В файле пользуйтесь источниками.'; $('#kwAi').disabled = true; $('#kwAiNote').textContent = 'Проверка фактов доступна только в онлайн-версии.'; } renderAi(); });
+
+/* fact check in workshop (1 per team) */
+$('#kwAi').onclick = async () => {
+  const t = aiT(kwTeam); const txt = $('#kwText').value.trim(); const sample = await samplePromise;
+  if (!sample || t.review) return; if (txt.length < 80) { $('#kwAiNote').textContent = 'Вставьте текст команды (хотя бы пару абзацев).'; return; }
+  const prompt = `Ты проверяешь творческую работу студентов (рассказ/сценарий) по теме «Выбор архитектуры информационной системы». Правила: НЕ переписывай и НЕ дополняй их текст, не предлагай готовых фраз. Найди до 3 мест, где факты об архитектуре могут быть неточны или где ключевое положение не раскрыто, и сформулируй каждое как вопрос к команде. Ключевые положения: ${THESES.join('; ')}.
+Ответь ТОЛЬКО JSON: {"questions":["вопрос 1","вопрос 2"]}
+
+Текст команды:
+${txt.slice(0, 6000)}`;
+  $('#kwAi').disabled = true; $('#kwAiNote').textContent = 'ИИ читает текст…';
+  try { const r = await sample.json(prompt, { cache:false }); t.review = true; const qs = (r && Array.isArray(r.questions) ? r.questions : []).slice(0, 3);
+    t.log.unshift({ q:'Проверка фактов в мастерской', a: qs.length ? qs.join(' / ') : 'Замечаний нет.', v:false }); save(); refreshAiBadges();
+    $('#kwAiNote').innerHTML = qs.length ? '<b>Вопросы ИИ к вашему тексту:</b><ol style="margin:6px 0 0;padding-left:18px">' + qs.map(x => `<li>${esc(x)}</li>`).join('') + '</ol>' : 'Фактических замечаний нет.';
+  } catch (err) { $('#kwAiNote').textContent = 'Не удалось проверить — попытка не засчитана.'; $('#kwAi').disabled = false; }
+};
+function syncKwAi(){ const t = aiT(kwTeam); $('#kwAi').disabled = !aiAvail || t.review; $('#kwAi').textContent = t.review ? 'Проверка ИИ использована' : 'Проверка фактов ИИ (1 раз)'; if (aiAvail) $('#kwAiNote').textContent = t.review ? 'Эта команда уже использовала проверку.' : 'ИИ не исправляет текст — только задаёт вопросы о неточностях.'; }
+function refreshAiBadges(){ $$('[data-aiuse]').forEach(el => el.textContent = aiUseText(+el.dataset.aiuse)); syncKwAi(); }
+
+
+/* final + boot */
+onEnter[idx('Итоги')] = () => { renderCmp(); updJournal(false); };
+$$('[data-exp]').forEach(sc => sc._restore && sc._restore());
+if (ST.named) { ['A','B','C'].forEach(k => $('#nm'+k).value = SPEC[k].real); unlock('D5', false); }
+if (ST.text.mxWhy) $('#mxWhy').value = ST.text.mxWhy;
+if (ST.found.D6) unlock('D6', false);
+showNames(); updJournal(false); syncUnlockBtns(); calc(0); calc(1);
+renderTeams(false); $('#kwText').value = (ST.stories || {})[0] || ''; checkKw(false);
+go(0);
+})();
+</script>
+
+</body>
+</html>
