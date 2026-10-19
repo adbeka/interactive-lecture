@@ -221,6 +221,32 @@ table.ws td{height:46px}
 .ws-checks span::before{content:"☐ ";color:var(--accent)}
 body.print header.top,body.print footer.nav,body.print .rail{display:none!important}
 body.print .scene{padding-block:28px}
+.gopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:8px}
+.gopt{background:#0A1222;border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-align:left;font:inherit;color:inherit;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.gopt b{font-size:15px}.gopt span{font-size:12px;color:var(--muted)}
+.gopt .cost{font:600 12px var(--f-mono);color:var(--accent)}
+.gopt.sel{border-color:var(--accent);background:#2a1f08}
+.gopt:disabled{opacity:.4;cursor:not-allowed}
+.coins{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.coin{width:18px;height:18px;border-radius:50%;background:var(--accent);box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
+.coin.spent{background:var(--line);box-shadow:none}
+.evgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px}
+.ev{background:var(--panel2);border:1px solid var(--accent);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.ev b{font:700 16px var(--f-display);color:var(--accent)}
+.gres td{text-align:center}.gres td:first-child{text-align:left}
+.st{display:inline-block;font:700 13px var(--f-mono);padding:3px 8px;border-radius:6px}
+.st.ok{background:rgba(63,208,164,.15);color:var(--ok)}.st.mid{background:rgba(255,176,32,.15);color:var(--accent)}.st.no{background:rgba(255,93,108,.15);color:var(--bad)}
+.lb{display:flex;flex-direction:column;gap:10px}
+.lbrow{display:grid;grid-template-columns:28px minmax(90px,130px) minmax(0,1fr) 5ch auto;gap:10px;align-items:center}
+.lbrow .pos{font:700 16px var(--f-mono);color:var(--muted)}
+.lbrow.first .pos{color:var(--accent)}
+.lbrow .bar{height:18px;margin:0}
+.lbrow .tot{font:700 20px var(--f-mono);text-align:right}
+.lbrow .mini{display:flex;gap:4px}
+.lbrow .mini button{font:600 12px var(--f-mono);background:none;border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:2px 7px;cursor:pointer}
+.lbsrc{font-size:12px;color:var(--muted);grid-column:2 / -1;margin-top:-6px}
+.exppts{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.exppts .btn.on{background:rgba(63,208,164,.12);border-color:var(--ok);color:var(--ok)}
 @media (max-width:700px){.brand{display:none}.nav .where{font-size:11px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -232,6 +258,7 @@ body.print .scene{padding-block:28px}
   <span class="brand">Проектирование ИС · Аденов Б.</span>
   <nav class="rail" id="rail" aria-label="Этапы"></nav>
   <button class="jbtn" id="jOpen" type="button" title="Журнал открытий"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21h6v-1H9v1zm3-19a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2z"/></svg>Открытия <span id="jN">0</span>/6</button>
+  <button class="jbtn" id="lbOpen" type="button" title="Рейтинг команд"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v2h4v3a5 5 0 0 1-4.6 5A5 5 0 0 1 13 15.9V18h3v3H8v-3h3v-2.1A5 5 0 0 1 7.6 13 5 5 0 0 1 3 8V5h4V3zm10 4v4a3 3 0 0 0 2-3V7h-2zM5 7v1a3 3 0 0 0 2 3V7H5z"/></svg>Рейтинг</button>
 </header>
 
 <main id="main">
@@ -247,6 +274,15 @@ body.print .scene{padding-block:28px}
     </div>
     <svg id="heroNet" viewBox="0 0 520 420" aria-hidden="true"></svg>
   </div>
+</section>
+
+<section class="scene" data-name="Загадка" hidden>
+  <div class="row"><span class="tag anim">Мотивация · загадка · 3 мин</span></div>
+  <h2 class="anim">Первый день записи на дисциплины. Портал университета грузится минуту, а потом падает. Почему?</h2>
+  <p class="muted anim">Голосуйте поднятыми руками — преподаватель отмечает. Правильный ответ сейчас не нужен.</p>
+  <div class="grid2 anim" id="riddle"></div>
+  <div class="panel anim" style="display:flex;gap:14px;align-items:flex-start"><svg viewBox="0 0 24 24" width="26" height="26" style="fill:var(--accent);flex:none" aria-hidden="true"><path d="M9 21h6v-1H9v1zm3-19a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2z"/></svg><p>Запомните свой ответ. Сегодня вы сами разберётесь, что происходит внутри такой системы и как этого можно было избежать. Вернёмся к загадке в эксперименте 2 и в конце пары.</p></div>
+  <details class="teach anim"><summary>Преподавателю</summary><ul><li>Это загадка про любую систему под пиковой нагрузкой — не утверждайте, как устроен именно ваш портал.</li><li>Спросите: «Почему в обычный день он работает?» — это подводит к идее пиковой нагрузки.</li></ul></details>
 </section>
 
 <section class="scene" data-name="Ваша гипотеза" hidden>
@@ -380,6 +416,24 @@ body.print .scene{padding-block:28px}
   <div data-concept="D6"></div>
 </section>
 
+<section class="scene" data-name="Испытание систем" hidden>
+  <div class="row" style="justify-content:space-between"><span class="tag anim">Игра · 10 мин</span><span class="muted anim" style="font-size:14px">Очки идут в общий рейтинг</span></div>
+  <h2 class="anim">Выживет ли ваша система? Соберите архитектуру на 10 монет — потом судьба вытянет 4 события</h2>
+  <div class="grid2">
+    <div class="panel anim" style="display:flex;flex-direction:column;gap:14px">
+      <div class="row" style="justify-content:space-between"><div class="tabs" id="gTeams"></div></div>
+      <div><h3>1 · Основа системы</h3><div class="gopts" id="gBase"></div></div>
+      <div><h3>2 · Дополнения</h3><div class="gopts" id="gAdd"></div></div>
+      <div class="row" style="justify-content:space-between"><div class="coins" id="gCoins"></div><button class="btn primary" id="gLock" type="button">Зафиксировать</button></div>
+    </div>
+    <div class="panel anim" style="display:flex;flex-direction:column;gap:12px"><h3>Готовность команд</h3><div id="gReady" class="ailog"></div>
+      <div class="row"><button class="btn primary" id="gDraw" type="button">Тянуть 4 события</button><button class="link" id="gReset" type="button">Новая игра</button></div>
+      <p class="muted" style="font-size:14px">События одинаковые для всех команд. Выжила — +3 очка, частично — +1, упала — 0.</p></div>
+  </div>
+  <div class="evgrid" id="gEvents"></div>
+  <div class="panel anim tablewrap" id="gResultWrap" hidden><table class="obs gres" id="gResult"></table></div>
+</section>
+
 <section class="scene" data-name="Творческая мастерская" hidden>
   <div class="row"><span class="tag anim">Мастерская · 25 мин</span></div>
   <h2 class="anim">Обсуждаем → создаём → проверяем термины</h2>
@@ -431,6 +485,9 @@ body.print .scene{padding-block:28px}
     <div class="anim" id="poll1" style="display:flex;flex-direction:column;gap:12px"></div>
     <div class="panel anim"><div class="row" style="justify-content:space-between;margin-bottom:12px"><h3>До и после исследования</h3><div class="legend"><span><i style="background:#5d6f92"></i>до</span><span><i style="background:var(--accent)"></i>после</span></div></div><div id="pollCmp"></div><p class="muted" id="h0back" style="margin-top:10px;font-size:14px"></p></div>
   </div>
+  <h3 class="anim" style="margin-top:8px">Рейтинг команд за пару</h3>
+  <div class="panel anim"><div class="lb" id="lbFinal"></div></div>
+  <p class="lead anim" id="riddleBack"></p>
   <h3 class="anim" style="margin-top:8px">Что вы открыли сами</h3>
   <div class="journal anim" id="journalFinal"></div>
   <div class="grid2 anim">
@@ -467,6 +524,10 @@ body.print .scene{padding-block:28px}
 </footer>
 </div>
 
+<dialog id="lbDlg" aria-label="Рейтинг команд">
+  <div class="row" style="justify-content:space-between;margin-bottom:14px"><h2 style="font-size:24px">Рейтинг команд</h2><button class="btn" id="lbClose" type="button">Закрыть</button></div>
+  <div class="lb" id="lbDlgBody"></div>
+</dialog>
 <dialog id="jDlg" aria-label="Журнал открытий">
   <div class="row" style="justify-content:space-between;margin-bottom:14px"><h2 style="font-size:24px">Журнал открытий</h2><button class="btn" id="jClose" type="button">Закрыть</button></div>
   <div class="journal" id="journalDlg"></div>
@@ -668,7 +729,7 @@ const EXPS = {
     facts:{A:'Падает всё: модуль оплаты живёт в одном процессе с остальными', B:'Падает всё: вся логика — в одном сервере', C:'Падает только оплата: заказы и доставка работают'},
     ask:'Почему в одной системе сбой «Оплаты» остановил всё, а в другой — нет? От чего это зависит?', key:'c_fail',
     teach:['Где проходит граница процесса в каждой системе?','Что общего у модулей внутри пунктирной рамки A?','Как защитить A, не превращая её в C?'] },
-  load:{ n:2, concept:'D2', title:'Пришла реклама: нагрузка на заказы выросла в 10 раз. Что придётся копировать, чтобы выдержать?',
+  load:{ n:2, concept:'D2', hook:'Вспомните загадку про первый день записи на дисциплины.', title:'Пришла реклама: нагрузка на заказы выросла в 10 раз. Что придётся копировать, чтобы выдержать?',
     opts:['Всё приложение целиком','Логику — но упрёмся в базу','Только нагруженную часть'], truth:{A:0,B:1,C:2},
     facts:{A:'Копируем всё приложение ×3 за балансировщиком — даже оплату и доставку', B:'Копируем сервер ×3, но единственная база перегружена', C:'Копируем только «Заказы» ×3'},
     ask:'Чем отличается масштабирование в A, B и C? Что мешает B справиться с нагрузкой?', key:'c_load',
@@ -690,12 +751,12 @@ $$('[data-exp]').forEach(sc => {
   if (PRINT) { ST.pred[id] = { ...X.truth }; ST.done[id] = true; ST.found[X.concept] = true; }
   sc.innerHTML = `
     <div class="row"><span class="tag anim">Эксперимент ${X.n} из 4</span></div>
-    <h2 class="anim">${X.title}</h2>
+    <h2 class="anim">${X.title}</h2>${X.hook ? `<p class="lead anim" style="color:var(--accent)">${X.hook}</p>` : ''}
     <div class="panel anim"><h3>Шаг 1 · Ваш прогноз для каждой системы</h3><div class="preds"></div></div>
     <div class="row anim"><button class="btn primary run" type="button" disabled>Шаг 2 · Запустить эксперимент</button><span class="muted runhint" style="font-size:14px"></span></div>
     <div class="vis anim"></div>
     <div class="panel conclude" hidden><h3>Шаг 3 · Ваш вывод</h3><label for="cx_${id}">${X.ask}</label><textarea id="cx_${id}" data-save="${X.key}"></textarea>
-      <div class="row"><button class="btn primary" data-unlock="${X.concept}" data-src="cx_${id}" type="button" disabled>Шаг 4 · Открыть понятие</button><button class="link" data-unlock="${X.concept}" data-force type="button">Преподавателю: открыть без вывода</button></div></div>
+      <div class="row"><button class="btn primary" data-unlock="${X.concept}" data-src="cx_${id}" type="button" disabled>Шаг 4 · Открыть понятие</button><button class="link" data-unlock="${X.concept}" data-force type="button">Преподавателю: открыть без вывода</button></div><div class="exppts"><span class="muted" style="font-size:14px">Команды, чей прогноз сбылся, получают +2 очка в рейтинг:</span><div class="tabs" data-exppts="${id}"></div></div></div>
     <div data-concept="${X.concept}"></div>
     <details class="teach"><summary>Наводящие вопросы преподавателю (без ответов)</summary><ul>${X.teach.map(t => `<li>${t}</li>`).join('')}</ul></details>`;
   const preds = $('.preds', sc); ST.pred[id] = ST.pred[id] || {};
@@ -907,7 +968,7 @@ $('#vWin').onclick = () => {
   if (HAS()) for (let k = 0; k < 40; k++) { const c = document.createElement('i'); c.style.cssText = `position:absolute;left:50%;top:30%;width:8px;height:8px;border-radius:2px;background:${['#FFB020','#3FD0A4','#5AA9FF','#A98BFF','#FF5D6C'][k%5]};pointer-events:none`; w.appendChild(c);
     anime({ targets:c, translateX:anime.random(-420,420), translateY:[0, anime.random(80,260)], rotate:anime.random(-360,360), opacity:[1,0], duration:anime.random(1200,2000), easing:'easeOutQuad', complete:() => c.remove() }); }
 };
-function refreshTeamUIs(){ renderGenres(); renderKwTabs(); renderDef(); vFrom = null; $('#vBars').innerHTML = ''; renderVote(); if (ST.ai) { renderAi(); refreshAiBadges(); } }
+function refreshTeamUIs(){ renderGenres(); renderKwTabs(); renderDef(); vFrom = null; $('#vBars').innerHTML = ''; renderVote(); if (ST.ai) { renderAi(); refreshAiBadges(); } if (ST.game) { renderGame(); renderExpPts(); refreshLB(false); } }
 if ($('#wsKw')) { $('#wsKw').innerHTML = KW.map(([k]) => `<span>${k}</span>`).join(''); $('#wsTh').innerHTML = THESES.map(t => `<span>${t}</span>`).join(''); }
 /* ================= AI consultant (with limits) ================= */
 const AI_LIMIT = 3;
@@ -983,8 +1044,111 @@ function syncKwAi(){ const t = aiT(kwTeam); $('#kwAi').disabled = !aiAvail || t.
 function refreshAiBadges(){ $$('[data-aiuse]').forEach(el => el.textContent = aiUseText(+el.dataset.aiuse)); syncKwAi(); }
 
 
+/* ================= riddle ================= */
+const RIDDLE = ['Слабый сервер','Все студенты зашли одновременно','База данных не справляется','Плохой интернет в общежитии','Сайт просто плохо написан'];
+ST.riddle = ST.riddle || [0,0,0,0,0];
+(function(){ const host = $('#riddle');
+  RIDDLE.forEach((t, i) => { const b = document.createElement('button'); b.className = 'opt'; b.type = 'button';
+    b.innerHTML = `<span class="letter">${i+1}</span><span style="min-width:0"><span>${t}</span><span class="bar"><i></i></span></span><span><span class="cnt">0</span><span class="minus" aria-label="Убрать голос">−</span></span>`;
+    b.onclick = e => { ST.riddle[i] = e.target.classList.contains('minus') ? Math.max(0, ST.riddle[i]-1) : ST.riddle[i]+1; save(); updRiddle(); A({ targets:$('.letter', b), scale:[1.25,1], duration:350, easing:'easeOutBack' }); };
+    host.appendChild(b); });
+})();
+function updRiddle(){ const mx = Math.max(1, ...ST.riddle); $$('#riddle .opt').forEach((b, i) => { $('.cnt', b).textContent = ST.riddle[i]; A({ targets:$('.bar>i', b), width:(ST.riddle[i]/mx*100)+'%', duration:500, easing:'easeOutCubic' }); }); }
+updRiddle();
+
+/* ================= points & leaderboard ================= */
+ST.pts = ST.pts || { exp:{}, game:{}, manual:{} };
+function teamScore(i){
+  const exp = Object.values(ST.pts.exp).filter(a => Array.isArray(a) && a.includes(i)).length * 2;
+  const txt = (ST.stories || {})[i] || ''; const kwHits = KW.filter(([, re]) => re.test(txt)).length; const kw = Math.floor(kwHits / 4);
+  const game = (ST.pts.game || {})[i] || 0;
+  const votes = (ST.votes || []).filter(v => v[1] === i).length;
+  const viol = ((ST.ai || {})[i] || {}).viol || 0;
+  const manual = (ST.pts.manual || {})[i] || 0;
+  return { exp, kw, game, votes, viol: -2*viol, manual, total: exp + kw + game + votes - 2*viol + manual };
+}
+function renderLB(host, animate){
+  const names = teamNames(); const sc = names.map((_, i) => teamScore(i)); const order = names.map((_, i) => i).sort((a, b) => sc[b].total - sc[a].total);
+  const mx = Math.max(1, ...sc.map(s => s.total));
+  host.innerHTML = order.map((i, r) => { const s = sc[i]; return `<div class="lbrow${r === 0 && s.total > 0 ? ' first' : ''}"><span class="pos">${r+1}</span><span>${names[i]}</span><span class="bar"><i style="width:0"></i></span><span class="tot">${s.total}</span><span class="mini"><button type="button" data-adj="${i}" data-d="1" aria-label="Добавить очко">+1</button><button type="button" data-adj="${i}" data-d="-1" aria-label="Снять очко">−1</button></span><span class="lbsrc">эксперименты ${s.exp} · термины ${s.kw} · игра ${s.game} · голоса ${s.votes}${s.viol ? ' · ИИ-нарушения ' + s.viol : ''}${s.manual ? ' · от преподавателя ' + s.manual : ''}</span></div>`; }).join('');
+  $$('.lbrow', host).forEach((row, r) => { const s = sc[order[r]]; const w = Math.max(0, s.total)/mx*100; const bar = $('.bar>i', row); if (animate) A({ targets:bar, width:w+'%', duration:700, delay:r*80, easing:'easeOutCubic' }); else bar.style.width = w + '%'; });
+  $$('[data-adj]', host).forEach(b => b.onclick = () => { const i = +b.dataset.adj; ST.pts.manual[i] = (ST.pts.manual[i] || 0) + (+b.dataset.d); save(); refreshLB(); });
+}
+function refreshLB(animate){ renderLB($('#lbDlgBody'), animate); renderLB($('#lbFinal'), animate); }
+$('#lbOpen').onclick = () => { refreshLB(true); const d = $('#lbDlg'); d.showModal ? d.showModal() : d.setAttribute('open',''); };
+$('#lbClose').onclick = () => { const d = $('#lbDlg'); d.close ? d.close() : d.removeAttribute('open'); };
+
+/* experiment points */
+function renderExpPts(){
+  $$('[data-exppts]').forEach(host => { const id = host.dataset.exppts; const sel = ST.pts.exp[id] || []; host.innerHTML = '';
+    teamNames().forEach((nm, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (sel.includes(i) ? ' on' : ''); b.textContent = (sel.includes(i) ? '+2 · ' : '') + nm;
+      b.onclick = () => { const a = ST.pts.exp[id] = ST.pts.exp[id] || []; const k = a.indexOf(i); k >= 0 ? a.splice(k, 1) : a.push(i); save(); renderExpPts(); A({ targets:'#lbOpen', scale:[1.15,1], duration:400, easing:'easeOutBack' }); };
+      host.appendChild(b); }); });
+}
+
+/* ================= survival game ================= */
+const GBASE = [['A','Монолит',2,'Одно приложение'],['B','Трёхуровневая',3,'Клиент — сервер — БД'],['C','Микросервисы',6,'Шлюз, сервисы, свои БД']];
+const GADD = [['lb','Балансировщик',2,'Несколько копий приложения'],['q','Очередь сообщений',1,'Заявки ждут, а не теряются'],['rep','Реплика БД',2,'Вторая копия базы для чтения'],['cache','Кэш',1,'Частые ответы из памяти'],['mon','Мониторинг',1,'Видно, где и что сломалось'],['dc','Резервный ЦОД',4,'Вторая площадка на случай аварии']];
+const BUDGET = 10;
+const EVENTS = [
+  { id:'load', t:'Реклама: нагрузка ×10', why:'Нужны копии за балансировщиком; у трёхуровневой ещё и разгрузка базы.',
+    f: c => c.base === 'C' ? 2 : c.base === 'A' ? (c.add.lb ? 2 : 0) : (c.add.lb && (c.add.rep || c.add.cache) ? 2 : c.add.lb ? 1 : 0) },
+  { id:'fail', t:'Упал модуль оплаты', why:'В микросервисах падает только оплата. В едином процессе выручают лишь другие копии за балансировщиком.',
+    f: c => c.base === 'C' ? 2 : c.add.lb ? 1 : 0 },
+  { id:'dc', t:'В дата-центре отключили электричество', why:'Спасает только вторая площадка.',
+    f: c => c.add.dc ? 2 : 0 },
+  { id:'quit', t:'Двое разработчиков уволились', why:'Простую систему поддержат оставшиеся; в микросервисах без мониторинга никто не поймёт, где ошибка.',
+    f: c => c.base === 'C' ? (c.add.mon ? 1 : 0) : 2 },
+  { id:'night', t:'Ошибка в 3 часа ночи', why:'Без мониторинга её заметят только утром — по жалобам клиентов.',
+    f: c => c.add.mon ? 2 : c.base === 'C' ? 0 : 1 },
+  { id:'peak', t:'Распродажа: заказы приходят быстрее, чем обрабатываются', why:'Очередь сглаживает пик: заявки ждут, а не теряются.',
+    f: c => c.add.q ? 2 : 1 },
+  { id:'deadline', t:'Срок запуска сократили до 2 месяцев', why:'Чем сложнее архитектура, тем дольше её строить.',
+    f: c => c.base === 'A' ? 2 : c.base === 'B' ? 1 : 0 },
+  { id:'grow', t:'Компания выросла до 5 команд', why:'Закон Конвея: много команд в одном коде мешают друг другу.',
+    f: c => c.base === 'C' ? 2 : c.base === 'B' ? 1 : 0 },
+];
+ST.game = ST.game || { cfg:{}, locked:{}, events:null };
+let gTeam = 0;
+const gCfg = i => (ST.game.cfg[i] = ST.game.cfg[i] || { base:null, add:{} });
+const gCost = c => (c.base ? GBASE.find(b => b[0] === c.base)[2] : 0) + GADD.filter(a => c.add[a[0]]).reduce((s, a) => s + a[2], 0);
+function renderGame(){
+  const names = teamNames(); const tabs = $('#gTeams'); tabs.innerHTML = '';
+  names.forEach((nm, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (i === gTeam ? ' on' : ''); b.textContent = (ST.game.locked[i] ? '✓ ' : '') + nm; b.onclick = () => { gTeam = i; renderGame(); }; tabs.appendChild(b); });
+  const c = gCfg(gTeam), locked = !!ST.game.locked[gTeam], spent = gCost(c);
+  $('#gBase').innerHTML = GBASE.map(([k, n, cost, d]) => `<button type="button" class="gopt${c.base === k ? ' sel' : ''}" data-base="${k}" ${locked || (c.base !== k && spent - (c.base ? GBASE.find(b => b[0] === c.base)[2] : 0) + cost > BUDGET) ? 'disabled' : ''}><b>${k} · ${n}</b><span>${d}</span><span class="cost">${cost} мон.</span></button>`).join('');
+  $('#gAdd').innerHTML = GADD.map(([k, n, cost, d]) => `<button type="button" class="gopt${c.add[k] ? ' sel' : ''}" data-add="${k}" ${locked || (!c.add[k] && spent + cost > BUDGET) ? 'disabled' : ''}><b>${n}</b><span>${d}</span><span class="cost">${cost} мон.</span></button>`).join('');
+  $$('[data-base]').forEach(b => b.onclick = () => { c.base = b.dataset.base; save(); renderGame(); });
+  $$('[data-add]').forEach(b => b.onclick = () => { c.add[b.dataset.add] = !c.add[b.dataset.add]; save(); renderGame(); });
+  $('#gCoins').innerHTML = Array.from({length:BUDGET}, (_, k) => `<span class="coin${k < spent ? ' spent' : ''}"></span>`).join('') + `<span class="muted" style="font-size:13px;margin-left:6px">осталось ${BUDGET - spent}</span>`;
+  $('#gLock').disabled = locked || !c.base; $('#gLock').textContent = locked ? 'Зафиксировано' : 'Зафиксировать';
+  $('#gReady').innerHTML = names.map((nm, i) => { const k = gCfg(i); const parts = k.base ? [GBASE.find(b => b[0] === k.base)[1], ...GADD.filter(a => k.add[a[0]]).map(a => a[1])] : []; return `<div class="qa"><div class="q"><b>${nm}</b> ${ST.game.locked[i] ? '<span class="st ok">готово</span>' : '<span class="st mid">собирает</span>'}</div><div style="font-size:14px">${parts.length ? esc(parts.join(' + ')) : '<span class="muted">ещё не выбрано</span>'}</div></div>`; }).join('');
+  $('#gDraw').disabled = !names.some((_, i) => ST.game.locked[i]);
+  if (ST.game.events) showGameResult(false);
+}
+$('#gLock').onclick = () => { ST.game.locked[gTeam] = true; save(); renderGame(); A({ targets:'#gCoins .coin', scale:[1.4,1], delay:stg(30), duration:400, easing:'easeOutBack' }); };
+$('#gReset').onclick = () => { const b = $('#gReset'); if (b.dataset.arm !== '1') { b.dataset.arm = '1'; b.textContent = 'Нажмите ещё раз — сбросить сборки и очки игры'; return; } b.dataset.arm = ''; b.textContent = 'Новая игра'; ST.game = { cfg:{}, locked:{}, events:null }; ST.pts.game = {}; save(); $('#gEvents').innerHTML = ''; $('#gResultWrap').hidden = true; renderGame(); };
+$('#gDraw').onclick = () => {
+  const pool = EVENTS.map(e => e.id); for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  ST.game.events = pool.slice(0, 4); save(); showGameResult(true);
+};
+function showGameResult(animate){
+  const evs = ST.game.events.map(id => EVENTS.find(e => e.id === id)); const names = teamNames();
+  $('#gEvents').innerHTML = evs.map((e, k) => `<div class="ev"><span class="eyebrow">Событие ${k+1}</span><b>${e.t}</b><span class="muted" style="font-size:13px">${e.why}</span></div>`).join('');
+  const teams = names.map((_, i) => i).filter(i => ST.game.locked[i]); ST.pts.game = {};
+  const lab = v => v === 2 ? '<span class="st ok">выжила</span>' : v === 1 ? '<span class="st mid">частично</span>' : '<span class="st no">упала</span>';
+  const rows = teams.map(i => { const c = gCfg(i); const vals = evs.map(e => e.f(c)); const pts = vals.reduce((s, v) => s + (v === 2 ? 3 : v === 1 ? 1 : 0), 0); ST.pts.game[i] = pts;
+    return `<tr><td><b>${names[i]}</b><br><span class="muted" style="font-size:12px">${esc([GBASE.find(b => b[0] === c.base)[1], ...GADD.filter(a => c.add[a[0]]).map(a => a[1])].join(' + '))}</span></td>${vals.map(v => `<td>${lab(v)}</td>`).join('')}<td><b class="st ok">+${pts}</b></td></tr>`; }).join('');
+  save();
+  $('#gResult').innerHTML = `<thead><tr><th>Команда</th>${evs.map((e, k) => `<th>${k+1}</th>`).join('')}<th>Очки</th></tr></thead><tbody>${rows}</tbody>`;
+  $('#gResultWrap').hidden = false;
+  if (animate) { A({ targets:$$('#gEvents .ev'), rotateY:[90,0], opacity:[0,1], delay:stg(350), duration:600, easing:'easeOutBack' });
+    A({ targets:$$('#gResult td .st'), scale:[0,1], delay:stg(70, {start:1500}), duration:400, easing:'easeOutBack' }); }
+}
+
 /* final + boot */
-onEnter[idx('Итоги')] = () => { renderCmp(); updJournal(false); };
+onEnter[idx('Итоги')] = () => { renderCmp(); updJournal(false); refreshLB(true); const r = ST.riddle || []; const top = r.indexOf(Math.max(...r)); $('#riddleBack').innerHTML = Math.max(...r) > 0 ? `Загадка про запись на дисциплины: чаще всего отвечали «${RIDDLE[top]}». Что вы скажете теперь, после эксперимента 2?` : 'Вернитесь к загадке про запись на дисциплины: что вы скажете теперь, после эксперимента 2?'; };
+onEnter[idx('Испытание систем')] = () => renderGame();
 $$('[data-exp]').forEach(sc => sc._restore && sc._restore());
 if (ST.named) { ['A','B','C'].forEach(k => $('#nm'+k).value = SPEC[k].real); unlock('D5', false); }
 if (ST.text.mxWhy) $('#mxWhy').value = ST.text.mxWhy;
